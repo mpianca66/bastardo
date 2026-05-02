@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -173,7 +174,7 @@ body{display:flex;justify-content:center}
   <div class="topbar"><button class="back" onclick="show('s-hmode')">←</button><div class="topbar-t">Configura partita</div></div>
   <div class="inp-g" style="margin-bottom:8px">
     <div class="lbl">OpenAI API Key</div>
-    <input class="inp" type="password" id="api-key" placeholder="sk-proj-..." autocomplete="off" style="font-family:monospace;font-size:13px"/>
+    <input class="inp" type="password" id="api-key" placeholder="Incolla qui la tua API Key" autocomplete="off" style="font-family:monospace;font-size:13px"/>
   </div>
   <div class="w100">
     <div class="lbl">Numero totale giocatori</div>
@@ -430,7 +431,7 @@ body{display:flex;justify-content:center}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-var DEFAULT_KEY = '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';
+var DEFAULT_KEY = '';
 
 var CATS = [
   {n:'Cibo e Cucina',e:'🍕'},{n:'Sport',e:'⚽'},{n:'Professioni',e:'👔'},
@@ -507,7 +508,7 @@ function broadcastExcept(msg, name) {
 
 // ── HOME ──────────────────────────────────────────────────────────────────
 function initHost() {
-  H.apiKey = localStorage.getItem('b_key') || DEFAULT_KEY;
+  H.apiKey = localStorage.getItem('b_key') || '';
   localStorage.setItem('b_key', H.apiKey);
   document.getElementById('api-key').value = H.apiKey;
   H.np = 4; H.players = []; H.hostPlays = true;
