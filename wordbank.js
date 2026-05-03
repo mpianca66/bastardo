@@ -1,24 +1,71 @@
-from pathlib import Path
+const WORD_BANK = [
 
-data = {
-"Sport": [("Calcio","Rugby"),("Tennis","Padel"),("Basket","Pallavolo"),("Nuoto","Pallanuoto"),("Formula 1","MotoGP"),("Sci","Snowboard"),("Boxe","Kickboxing"),("Atletica","Triathlon"),("Golf","Minigolf"),("Ciclismo","Mountain bike"),("Ping pong","Tennis"),("Scherma","Kendo"),("Baseball","Softball"),("Hockey","Lacrosse"),("Surf","Windsurf"),("Judo","Karate"),("Skateboard","Pattinaggio"),("Arrampicata","Alpinismo"),("Canottaggio","Kayak"),("Maratona","Mezza maratona")],
-"Animali": [("Leone","Tigre"),("Gatto","Volpe"),("Cane","Lupo"),("Mucca","Bufalo"),("Cavallo","Asino"),("Aquila","Falco"),("Delfino","Orca"),("Squalo","Balena"),("Pecora","Capra"),("Rana","Rospo"),("Coccodrillo","Alligatore"),("Ghepardo","Leopardo"),("Topo","Criceto"),("Oca","Anatra"),("Pavone","Fagiano"),("Serpente","Lucertola"),("Polpo","Calamaro"),("Granchio","Aragosta"),("Cinghiale","Maiale"),("Pinguino","Foca")],
-"Cibo e Cucina": [("Pizza","Focaccia"),("Pasta","Riso"),("Lasagna","Cannelloni"),("Gelato","Granita"),("Pane","Toast"),("Cappuccino","Caffè macchiato"),("Cornetto","Brioche"),("Risotto","Minestra"),("Mozzarella","Burrata"),("Prosciutto","Salame"),("Parmigiana","Lasagna"),("Tiramisù","Zuppa inglese"),("Carbonara","Amatriciana"),("Hamburger","Hot dog"),("Sushi","Sashimi"),("Kebab","Gyros"),("Piadina","Crêpe"),("Polenta","Purè"),("Arancino","Supplì"),("Cioccolato","Cacao")],
-"Cinema e Serie TV": [("Batman","Superman"),("Rocky","Rambo"),("Titanic","Pearl Harbor"),("Harry Potter","Il Signore degli Anelli"),("Spider-Man","Iron Man"),("Star Wars","Star Trek"),("Matrix","Inception"),("Jurassic Park","King Kong"),("Il Padrino","Scarface"),("Friends","How I Met Your Mother"),("Breaking Bad","Better Call Saul"),("Game of Thrones","House of the Dragon"),("Stranger Things","Dark"),("The Walking Dead","Lost"),("Top Gun","Giorni di tuono"),("Ghostbusters","Men in Black"),("Shrek","Toy Story"),("Frozen","Rapunzel"),("La Casa di Carta","Prison Break"),("Squid Game","Alice in Borderland")],
-"Anni 80/90": [("Walkman","Discman"),("VHS","DVD"),("Game Boy","Game Gear"),("MTV","Videomusic"),("Bim Bum Bam","Ciao Ciao"),("Cabina telefonica","Gettone telefonico"),("Commodore 64","Amiga"),("Super Nintendo","Mega Drive"),("Tamagotchi","Giga Pet"),("Crystal Ball","Didò"),("Festivalbar","Karaoke"),("Non è la Rai","Drive In"),("Sarabanda","Passaparola"),("Jovanotti","883"),("Ambra","Sabrina Salerno"),("Fiat Uno","Panda 4x4"),("Zaino Invicta","Diario Smemoranda"),("Cioè","Topolino"),("Pongo","Das"),("Big Babol","Brooklyn")],
-"Oggetti": [("Telefono","Tablet"),("Computer","Stampante"),("Lampada","Torcia"),("Orologio","Sveglia"),("Sedia","Poltrona"),("Divano","Letto"),("Forno","Microonde"),("Frigorifero","Congelatore"),("Lavatrice","Lavastoviglie"),("Aspirapolvere","Scopa"),("Telecomando","Joystick"),("Specchio","Quadro"),("Cuscino","Coperta"),("Bicchiere","Tazza"),("Pentola","Padella"),("Chiave","Lucchetto"),("Armadio","Cassettiera"),("Tappeto","Zerbino"),("Candela","Profumatore"),("Libro","Rivista")],
-"Tecnologia": [("Smartphone","Tablet"),("Laptop","Desktop"),("Mouse","Touchpad"),("WiFi","Bluetooth"),("Email","Chat"),("Google","Bing"),("Instagram","TikTok"),("YouTube","Netflix"),("QR code","Codice a barre"),("Cloud","Hard disk"),("USB","HDMI"),("Robot","Drone"),("Stampante 3D","Plotter"),("Password","PIN"),("App","Sito web"),("GPS","Bussola"),("Fotocamera","Videocamera"),("Router","Modem"),("Auricolari","Cuffie"),("Intelligenza artificiale","Chatbot")],
-"Luoghi": [("Roma","Firenze"),("Parigi","Londra"),("New York","Los Angeles"),("Venezia","Verona"),("Torino","Milano"),("Colosseo","Arena di Verona"),("Torre Eiffel","Big Ben"),("Statua della Libertà","Cristo Redentore"),("Piramidi","Sfinge"),("Machu Picchu","Petra"),("Sahara","Deserto del Gobi"),("Everest","K2"),("Amazzonia","Congo"),("Grand Canyon","Monument Valley"),("Santorini","Mykonos"),("Capri","Ischia"),("Sicilia","Sardegna"),("Tokyo","Seoul"),("Madrid","Barcellona"),("Amsterdam","Bruxelles")],
-"Musica": [("Chitarra","Basso"),("Pianoforte","Tastiera"),("Batteria","Percussioni"),("Violino","Viola"),("Sax","Tromba"),("Rock","Metal"),("Pop","Dance"),("Rap","Trap"),("Reggae","Ska"),("Jazz","Blues"),("Opera","Musical"),("DJ","Producer"),("Concerto","Festival"),("Vinile","CD"),("Spotify","YouTube Music"),("Microfono","Megafono"),("Coro","Orchestra"),("Canzone","Jingle"),("Ritornello","Strofa"),("Sanremo","Eurovision")],
-"Professioni": [("Medico","Infermiere"),("Avvocato","Notaio"),("Maestro","Professore"),("Cuoco","Pasticcere"),("Architetto","Ingegnere"),("Giornalista","Scrittore"),("Attore","Regista"),("Cantante","Musicista"),("Pilota","Autista"),("Poliziotto","Carabiniere"),("Pompiere","Soccorritore"),("Farmacista","Dentista"),("Idraulico","Elettricista"),("Sarto","Stilista"),("Barista","Cameriere"),("Programmatore","Sistemista"),("Fotografo","Videomaker"),("Commercialista","Consulente"),("Parrucchiere","Estetista"),("Falegname","Muratore")]
-}
-lines = ["// wordbank.js - Bastard*! / Bastardo!", "// Archivio locale: 200 coppie totali, 10 categorie, 20 coppie per categoria.", "const WORD_BANK = ["]
-for cat, pairs in data.items():
-    lines.append(f"\n  // {cat.upper()}")
-    for a,b in pairs:
-        lines.append(f'  {{cat:"{cat}", a:"{a}", b:"{b}"}},')
-lines.append("\n];")
-lines.append("const WORD_CATEGORIES = [...new Set(WORD_BANK.map(item => item.cat))];")
-Path("/mnt/data/wordbank_200_definitivo.js").write_text("\n".join(lines), encoding="utf-8")
-print("Creato: /mnt/data/wordbank_200_definitivo.js")
-print("Categorie:", len(data), "Coppie:", sum(len(v) for v in data.values()))
+  // SPORT
+  {cat:"Sport", a:"Calcio", b:"Rugby"},
+  {cat:"Sport", a:"Tennis", b:"Padel"},
+  {cat:"Sport", a:"Basket", b:"Pallavolo"},
+  {cat:"Sport", a:"Nuoto", b:"Pallanuoto"},
+  {cat:"Sport", a:"Formula 1", b:"MotoGP"},
+  {cat:"Sport", a:"Sci", b:"Snowboard"},
+  {cat:"Sport", a:"Boxe", b:"Kickboxing"},
+  {cat:"Sport", a:"Atletica", b:"Triathlon"},
+  {cat:"Sport", a:"Golf", b:"Minigolf"},
+  {cat:"Sport", a:"Ciclismo", b:"Mountain bike"},
+  {cat:"Sport", a:"Ping pong", b:"Tennis"},
+  {cat:"Sport", a:"Scherma", b:"Kendo"},
+  {cat:"Sport", a:"Baseball", b:"Softball"},
+  {cat:"Sport", a:"Hockey", b:"Lacrosse"},
+  {cat:"Sport", a:"Surf", b:"Windsurf"},
+  {cat:"Sport", a:"Judo", b:"Karate"},
+  {cat:"Sport", a:"Skateboard", b:"Pattinaggio"},
+  {cat:"Sport", a:"Arrampicata", b:"Alpinismo"},
+  {cat:"Sport", a:"Canottaggio", b:"Kayak"},
+  {cat:"Sport", a:"Maratona", b:"Mezza maratona"},
+
+  // ANIMALI
+  {cat:"Animali", a:"Leone", b:"Tigre"},
+  {cat:"Animali", a:"Gatto", b:"Volpe"},
+  {cat:"Animali", a:"Cane", b:"Lupo"},
+  {cat:"Animali", a:"Mucca", b:"Bufalo"},
+  {cat:"Animali", a:"Cavallo", b:"Asino"},
+  {cat:"Animali", a:"Aquila", b:"Falco"},
+  {cat:"Animali", a:"Delfino", b:"Orca"},
+  {cat:"Animali", a:"Squalo", b:"Balena"},
+  {cat:"Animali", a:"Pecora", b:"Capra"},
+  {cat:"Animali", a:"Rana", b:"Rospo"},
+  {cat:"Animali", a:"Coccodrillo", b:"Alligatore"},
+  {cat:"Animali", a:"Ghepardo", b:"Leopardo"},
+  {cat:"Animali", a:"Topo", b:"Criceto"},
+  {cat:"Animali", a:"Oca", b:"Anatra"},
+  {cat:"Animali", a:"Pavone", b:"Fagiano"},
+  {cat:"Animali", a:"Serpente", b:"Lucertola"},
+  {cat:"Animali", a:"Polpo", b:"Calamaro"},
+  {cat:"Animali", a:"Granchio", b:"Aragosta"},
+  {cat:"Animali", a:"Cinghiale", b:"Maiale"},
+  {cat:"Animali", a:"Pinguino", b:"Foca"},
+
+  // CIBO
+  {cat:"Cibo e Cucina", a:"Pizza", b:"Focaccia"},
+  {cat:"Cibo e Cucina", a:"Pasta", b:"Riso"},
+  {cat:"Cibo e Cucina", a:"Lasagna", b:"Cannelloni"},
+  {cat:"Cibo e Cucina", a:"Gelato", b:"Granita"},
+  {cat:"Cibo e Cucina", a:"Pane", b:"Toast"},
+  {cat:"Cibo e Cucina", a:"Cappuccino", b:"Caffè macchiato"},
+  {cat:"Cibo e Cucina", a:"Cornetto", b:"Brioche"},
+  {cat:"Cibo e Cucina", a:"Risotto", b:"Minestra"},
+  {cat:"Cibo e Cucina", a:"Mozzarella", b:"Burrata"},
+  {cat:"Cibo e Cucina", a:"Prosciutto", b:"Salame"},
+  {cat:"Cibo e Cucina", a:"Parmigiana", b:"Lasagna"},
+  {cat:"Cibo e Cucina", a:"Tiramisù", b:"Zuppa inglese"},
+  {cat:"Cibo e Cucina", a:"Carbonara", b:"Amatriciana"},
+  {cat:"Cibo e Cucina", a:"Hamburger", b:"Hot dog"},
+  {cat:"Cibo e Cucina", a:"Sushi", b:"Sashimi"},
+  {cat:"Cibo e Cucina", a:"Kebab", b:"Gyros"},
+  {cat:"Cibo e Cucina", a:"Piadina", b:"Crêpe"},
+  {cat:"Cibo e Cucina", a:"Polenta", b:"Purè"},
+  {cat:"Cibo e Cucina", a:"Arancino", b:"Supplì"},
+  {cat:"Cibo e Cucina", a:"Cioccolato", b:"Cacao"}
+
+];
+
+const WORD_CATEGORIES = [...new Set(WORD_BANK.map(item => item.cat))];
