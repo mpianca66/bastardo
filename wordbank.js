@@ -1,66 +1,24 @@
-const WORD_BANK = [
+from pathlib import Path
 
-  // SPORT
-  {cat:"Sport", a:"Calcio", b:"Rugby"},
-  {cat:"Sport", a:"Tennis", b:"Padel"},
-  {cat:"Sport", a:"Basket", b:"Pallavolo"},
-  {cat:"Sport", a:"Nuoto", b:"Pallanuoto"},
-  {cat:"Sport", a:"Formula 1", b:"MotoGP"},
-
-  // ANIMALI
-  {cat:"Animali", a:"Leone", b:"Tigre"},
-  {cat:"Animali", a:"Cane", b:"Lupo"},
-  {cat:"Animali", a:"Gatto", b:"Volpe"},
-  {cat:"Animali", a:"Mucca", b:"Bufalo"},
-  {cat:"Animali", a:"Aquila", b:"Falco"},
-
-  // CIBO
-  {cat:"Cibo e Cucina", a:"Pizza", b:"Focaccia"},
-  {cat:"Cibo e Cucina", a:"Pasta", b:"Riso"},
-  {cat:"Cibo e Cucina", a:"Lasagna", b:"Cannelloni"},
-  {cat:"Cibo e Cucina", a:"Carbonara", b:"Amatriciana"},
-  {cat:"Cibo e Cucina", a:"Tiramisù", b:"Zuppa inglese"},
-
-  // TECNOLOGIA
-  {cat:"Tecnologia", a:"Smartphone", b:"Tablet"},
-  {cat:"Tecnologia", a:"Laptop", b:"Desktop"},
-  {cat:"Tecnologia", a:"WiFi", b:"Bluetooth"},
-  {cat:"Tecnologia", a:"Mouse", b:"Touchpad"},
-  {cat:"Tecnologia", a:"App", b:"Sito web"},
-
-  // MUSICA
-  {cat:"Musica", a:"Chitarra", b:"Basso"},
-  {cat:"Musica", a:"Pianoforte", b:"Tastiera"},
-  {cat:"Musica", a:"Rap", b:"Trap"},
-  {cat:"Musica", a:"Jazz", b:"Blues"},
-  {cat:"Musica", a:"Rock", b:"Metal"},
-
-  // LUOGHI
-  {cat:"Luoghi", a:"Roma", b:"Milano"},
-  {cat:"Luoghi", a:"Parigi", b:"Londra"},
-  {cat:"Luoghi", a:"New York", b:"Los Angeles"},
-  {cat:"Luoghi", a:"Tokyo", b:"Seoul"},
-  {cat:"Luoghi", a:"Madrid", b:"Barcellona"},
-
-  // CINEMA
-  {cat:"Cinema", a:"Batman", b:"Superman"},
-  {cat:"Cinema", a:"Rocky", b:"Rambo"},
-  {cat:"Cinema", a:"Titanic", b:"Pearl Harbor"},
-  {cat:"Cinema", a:"Matrix", b:"Inception"},
-  {cat:"Cinema", a:"Jurassic Park", b:"King Kong"},
-
-  // OGGETTI
-  {cat:"Oggetti", a:"Telefono", b:"Tablet"},
-  {cat:"Oggetti", a:"Lampada", b:"Torcia"},
-  {cat:"Oggetti", a:"Sedia", b:"Poltrona"},
-  {cat:"Oggetti", a:"Forno", b:"Microonde"},
-  {cat:"Oggetti", a:"Frigorifero", b:"Congelatore"},
-
-  // PROFESSIONI
-  {cat:"Professioni", a:"Medico", b:"Infermiere"},
-  {cat:"Professioni", a:"Avvocato", b:"Notaio"},
-  {cat:"Professioni", a:"Cuoco", b:"Pasticcere"},
-  {cat:"Professioni", a:"Architetto", b:"Ingegnere"},
-  {cat:"Professioni", a:"Barista", b:"Cameriere"}
-
-];
+data = {
+"Sport": [("Calcio","Rugby"),("Tennis","Padel"),("Basket","Pallavolo"),("Nuoto","Pallanuoto"),("Formula 1","MotoGP"),("Sci","Snowboard"),("Boxe","Kickboxing"),("Atletica","Triathlon"),("Golf","Minigolf"),("Ciclismo","Mountain bike"),("Ping pong","Tennis"),("Scherma","Kendo"),("Baseball","Softball"),("Hockey","Lacrosse"),("Surf","Windsurf"),("Judo","Karate"),("Skateboard","Pattinaggio"),("Arrampicata","Alpinismo"),("Canottaggio","Kayak"),("Maratona","Mezza maratona")],
+"Animali": [("Leone","Tigre"),("Gatto","Volpe"),("Cane","Lupo"),("Mucca","Bufalo"),("Cavallo","Asino"),("Aquila","Falco"),("Delfino","Orca"),("Squalo","Balena"),("Pecora","Capra"),("Rana","Rospo"),("Coccodrillo","Alligatore"),("Ghepardo","Leopardo"),("Topo","Criceto"),("Oca","Anatra"),("Pavone","Fagiano"),("Serpente","Lucertola"),("Polpo","Calamaro"),("Granchio","Aragosta"),("Cinghiale","Maiale"),("Pinguino","Foca")],
+"Cibo e Cucina": [("Pizza","Focaccia"),("Pasta","Riso"),("Lasagna","Cannelloni"),("Gelato","Granita"),("Pane","Toast"),("Cappuccino","Caffè macchiato"),("Cornetto","Brioche"),("Risotto","Minestra"),("Mozzarella","Burrata"),("Prosciutto","Salame"),("Parmigiana","Lasagna"),("Tiramisù","Zuppa inglese"),("Carbonara","Amatriciana"),("Hamburger","Hot dog"),("Sushi","Sashimi"),("Kebab","Gyros"),("Piadina","Crêpe"),("Polenta","Purè"),("Arancino","Supplì"),("Cioccolato","Cacao")],
+"Cinema e Serie TV": [("Batman","Superman"),("Rocky","Rambo"),("Titanic","Pearl Harbor"),("Harry Potter","Il Signore degli Anelli"),("Spider-Man","Iron Man"),("Star Wars","Star Trek"),("Matrix","Inception"),("Jurassic Park","King Kong"),("Il Padrino","Scarface"),("Friends","How I Met Your Mother"),("Breaking Bad","Better Call Saul"),("Game of Thrones","House of the Dragon"),("Stranger Things","Dark"),("The Walking Dead","Lost"),("Top Gun","Giorni di tuono"),("Ghostbusters","Men in Black"),("Shrek","Toy Story"),("Frozen","Rapunzel"),("La Casa di Carta","Prison Break"),("Squid Game","Alice in Borderland")],
+"Anni 80/90": [("Walkman","Discman"),("VHS","DVD"),("Game Boy","Game Gear"),("MTV","Videomusic"),("Bim Bum Bam","Ciao Ciao"),("Cabina telefonica","Gettone telefonico"),("Commodore 64","Amiga"),("Super Nintendo","Mega Drive"),("Tamagotchi","Giga Pet"),("Crystal Ball","Didò"),("Festivalbar","Karaoke"),("Non è la Rai","Drive In"),("Sarabanda","Passaparola"),("Jovanotti","883"),("Ambra","Sabrina Salerno"),("Fiat Uno","Panda 4x4"),("Zaino Invicta","Diario Smemoranda"),("Cioè","Topolino"),("Pongo","Das"),("Big Babol","Brooklyn")],
+"Oggetti": [("Telefono","Tablet"),("Computer","Stampante"),("Lampada","Torcia"),("Orologio","Sveglia"),("Sedia","Poltrona"),("Divano","Letto"),("Forno","Microonde"),("Frigorifero","Congelatore"),("Lavatrice","Lavastoviglie"),("Aspirapolvere","Scopa"),("Telecomando","Joystick"),("Specchio","Quadro"),("Cuscino","Coperta"),("Bicchiere","Tazza"),("Pentola","Padella"),("Chiave","Lucchetto"),("Armadio","Cassettiera"),("Tappeto","Zerbino"),("Candela","Profumatore"),("Libro","Rivista")],
+"Tecnologia": [("Smartphone","Tablet"),("Laptop","Desktop"),("Mouse","Touchpad"),("WiFi","Bluetooth"),("Email","Chat"),("Google","Bing"),("Instagram","TikTok"),("YouTube","Netflix"),("QR code","Codice a barre"),("Cloud","Hard disk"),("USB","HDMI"),("Robot","Drone"),("Stampante 3D","Plotter"),("Password","PIN"),("App","Sito web"),("GPS","Bussola"),("Fotocamera","Videocamera"),("Router","Modem"),("Auricolari","Cuffie"),("Intelligenza artificiale","Chatbot")],
+"Luoghi": [("Roma","Firenze"),("Parigi","Londra"),("New York","Los Angeles"),("Venezia","Verona"),("Torino","Milano"),("Colosseo","Arena di Verona"),("Torre Eiffel","Big Ben"),("Statua della Libertà","Cristo Redentore"),("Piramidi","Sfinge"),("Machu Picchu","Petra"),("Sahara","Deserto del Gobi"),("Everest","K2"),("Amazzonia","Congo"),("Grand Canyon","Monument Valley"),("Santorini","Mykonos"),("Capri","Ischia"),("Sicilia","Sardegna"),("Tokyo","Seoul"),("Madrid","Barcellona"),("Amsterdam","Bruxelles")],
+"Musica": [("Chitarra","Basso"),("Pianoforte","Tastiera"),("Batteria","Percussioni"),("Violino","Viola"),("Sax","Tromba"),("Rock","Metal"),("Pop","Dance"),("Rap","Trap"),("Reggae","Ska"),("Jazz","Blues"),("Opera","Musical"),("DJ","Producer"),("Concerto","Festival"),("Vinile","CD"),("Spotify","YouTube Music"),("Microfono","Megafono"),("Coro","Orchestra"),("Canzone","Jingle"),("Ritornello","Strofa"),("Sanremo","Eurovision")],
+"Professioni": [("Medico","Infermiere"),("Avvocato","Notaio"),("Maestro","Professore"),("Cuoco","Pasticcere"),("Architetto","Ingegnere"),("Giornalista","Scrittore"),("Attore","Regista"),("Cantante","Musicista"),("Pilota","Autista"),("Poliziotto","Carabiniere"),("Pompiere","Soccorritore"),("Farmacista","Dentista"),("Idraulico","Elettricista"),("Sarto","Stilista"),("Barista","Cameriere"),("Programmatore","Sistemista"),("Fotografo","Videomaker"),("Commercialista","Consulente"),("Parrucchiere","Estetista"),("Falegname","Muratore")]
+}
+lines = ["// wordbank.js - Bastard*! / Bastardo!", "// Archivio locale: 200 coppie totali, 10 categorie, 20 coppie per categoria.", "const WORD_BANK = ["]
+for cat, pairs in data.items():
+    lines.append(f"\n  // {cat.upper()}")
+    for a,b in pairs:
+        lines.append(f'  {{cat:"{cat}", a:"{a}", b:"{b}"}},')
+lines.append("\n];")
+lines.append("const WORD_CATEGORIES = [...new Set(WORD_BANK.map(item => item.cat))];")
+Path("/mnt/data/wordbank_200_definitivo.js").write_text("\n".join(lines), encoding="utf-8")
+print("Creato: /mnt/data/wordbank_200_definitivo.js")
+print("Categorie:", len(data), "Coppie:", sum(len(v) for v in data.values()))
