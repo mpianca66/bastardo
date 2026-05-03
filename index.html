@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -7,15 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Bastardo!"/>
-<title>Bastardo!</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
 <meta name="theme-color" content="#C0181A"/>
+<title>Bastardo!</title>
 <style>
 :root{
   --red:#C0181A;--red2:#D92020;--red-bg:rgba(192,24,26,.10);
   --gold:#8B6914;--gold-bg:rgba(139,105,20,.10);
   --green:#1A7A40;--green-bg:rgba(26,122,64,.10);
+  --orange:#CC6600;
   --bg:#F5F3EF;--bg3:#FFFFFF;--bg4:#E8E4DC;
   --text:#1A1A1A;--dim:#666660;--border:rgba(0,0,0,.10);--r:14px
 }
@@ -84,11 +84,12 @@ body{display:flex;justify-content:center}
 .qr-wrap{background:#fff;border-radius:12px;padding:12px;display:inline-block;border:2px solid var(--border)}
 .p-list{width:100%;display:flex;flex-direction:column;gap:8px}
 .p-row{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:13px 14px;border:1.5px solid var(--border)}
-.p-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0}
+.p-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s}
 .p-dot.on{background:var(--green)}
 .p-dot.red{background:var(--red2)}
+.p-dot.orange{background:var(--orange)}
 .p-name{font-size:15px;flex:1;text-align:left;font-weight:600}
-.p-stat{font-size:13px;color:var(--dim)}
+.p-stat{font-size:12px;color:var(--dim);text-align:right}
 .phase-bar{background:#fff;border-radius:var(--r);padding:16px 18px;width:100%;display:flex;align-items:center;gap:14px;border:1.5px solid var(--border)}
 .ph-ico{font-size:30px}
 .ph-name{font-size:16px;font-weight:800}
@@ -136,11 +137,17 @@ body{display:flex;justify-content:center}
 .turn-card{background:#fff;border:2px solid rgba(139,105,20,.25);border-radius:20px;padding:22px;width:100%;text-align:center}
 .turn-name{font-family:Georgia,serif;font-size:36px;font-weight:800;color:var(--gold);margin-top:4px}
 .turn-you{color:var(--red2)!important}
+.net-badge{position:fixed;top:12px;right:12px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;z-index:999;display:none}
+.net-badge.show{display:block}
+.net-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,64,.3)}
+.net-warn{background:rgba(204,102,0,.15);color:var(--orange);border:1px solid rgba(204,102,0,.3)}
+.net-err{background:var(--red-bg);color:var(--red2);border:1px solid rgba(192,24,26,.3)}
 .w100{width:100%}
-.confirm-card{background:#fff;border:2px solid var(--border);border-radius:16px;padding:20px;width:100%;text-align:center}
 </style>
 </head>
 <body>
+
+<div id="net-badge" class="net-badge"></div>
 
 <!-- HOME -->
 <div id="s-home" class="screen">
@@ -155,7 +162,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- HOST: MODALITÀ -->
+<!-- HOST MODALITÀ -->
 <div id="s-hmode" class="screen">
   <div class="topbar"><button class="back" onclick="show('s-home')">←</button><div class="topbar-t">Modalità host</div></div>
   <div class="hero" style="justify-content:flex-start;padding-top:24px">
@@ -169,12 +176,11 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- HOST: SETUP -->
+<!-- HOST SETUP -->
 <div id="s-hsetup" class="screen">
   <div class="topbar"><button class="back" onclick="show('s-hmode')">←</button><div class="topbar-t">Configura partita</div></div>
-  <div class="inp-g" style="margin-bottom:8px">
-    <div class="lbl">OpenAI API Key</div>
-    <input class="inp" type="password" id="api-key" placeholder="Incolla qui la tua API Key" autocomplete="off" style="font-family:monospace;font-size:13px"/>
+  <div class="ai-box" style="margin-bottom:12px">
+    <div class="hint">Versione indipendente: le parole vengono pescate dall'archivio locale.</div>
   </div>
   <div class="w100">
     <div class="lbl">Numero totale giocatori</div>
@@ -188,26 +194,26 @@ body{display:flex;justify-content:center}
   <div class="btns"><button class="btn btn-red" onclick="goCategory()">Scegli categoria →</button></div>
 </div>
 
-<!-- HOST: CATEGORIA -->
+<!-- HOST CATEGORIA -->
 <div id="s-hcat" class="screen">
-  <div class="topbar"><button class="back" onclick="show('s-hsetup')">←</button><div class="topbar-t">Scegli categoria</div></div>
+  <div class="topbar"><button class="back" id="btn-cat-back" onclick="show('s-hsetup')">←</button><div class="topbar-t">Scegli categoria</div></div>
   <div class="cat-grid" id="cat-grid"></div>
   <div class="w100" style="margin-top:8px">
     <div class="lbl">Oppure inventa una categoria</div>
     <input class="inp" type="text" id="custom-cat" placeholder="Es: Personaggi anni '80, Auto storiche..."/>
   </div>
   <div id="ai-area" class="w100"></div>
-  <div class="btns"><button class="btn btn-red" id="btn-gen" onclick="genWords()" disabled>Genera con AI ✦</button></div>
+  <div class="btns"><button class="btn btn-red" id="btn-gen" onclick="genWords()" disabled>Estrai coppia parole →</button></div>
 </div>
 
-<!-- HOST: LOBBY -->
+<!-- HOST LOBBY -->
 <div id="s-hlobby" class="screen">
   <div class="topbar"><button class="back" onclick="goCategory()">←</button><div class="topbar-t">Lobby</div></div>
   <div class="w100" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:4px">
     <div class="lbl" style="text-align:center">Codice stanza</div>
     <div class="room-code" id="room-code">——————</div>
     <div class="qr-wrap" id="qr-area"></div>
-    <p class="hint">Ogni giocatore apre lo stesso file e inserisce questo codice</p>
+    <p class="hint">Ogni giocatore apre l'app e inserisce questo codice</p>
   </div>
   <div class="w100">
     <div class="lbl">Connessioni (<span id="conn-n">0</span> / <span id="conn-tot">4</span>)</div>
@@ -219,7 +225,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- HOST: CONFERME NUOVO ROUND -->
+<!-- HOST CONFERME NUOVO ROUND -->
 <div id="s-hnewlobby" class="screen">
   <div class="topbar" style="justify-content:center"><div class="topbar-t" style="font-size:18px">Nuovo round — conferme</div></div>
   <p class="hint" style="margin-top:8px">I giocatori stanno scegliendo se partecipare.</p>
@@ -233,7 +239,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- HOST: CONTROLLO PARTITA -->
+<!-- HOST CONTROLLO -->
 <div id="s-hctrl" class="screen">
   <div style="padding-top:24px;width:100%;display:flex;flex-direction:column;align-items:center;gap:18px">
     <div class="h1">Bastardo! <b>in corso</b></div>
@@ -257,20 +263,22 @@ body{display:flex;justify-content:center}
   <div class="btns">
     <button class="btn btn-red" id="btn-adv" onclick="hostAdvance()" style="display:none">Avvia giro dichiarazioni →</button>
     <button class="btn btn-out btn-sm" id="btn-nextturn" onclick="nextTurn()" style="display:none">Forza prossimo turno</button>
+    <button class="btn btn-out btn-sm" id="btn-forcevote" onclick="forceCloseVoting()" style="display:none">Chiudi votazione</button>
   </div>
 </div>
 
-<!-- HOST: ATTESA GUESS -->
+<!-- HOST ATTESA GUESS -->
 <div id="s-hguesswait" class="screen">
   <div class="hero">
     <div style="font-size:52px">😈</div>
     <div class="h1">Il Bastardo è stato <b>scoperto</b></div>
     <p class="hint">Ora può provare a salvarsi indovinando la parola degli innocenti.</p>
     <div class="spinner"></div>
+    <button class="btn btn-out btn-sm" onclick="finishResultWithGuess('')" style="margin-top:8px">Salta tentativo</button>
   </div>
 </div>
 
-<!-- HOST: RISULTATO -->
+<!-- HOST RISULTATO -->
 <div id="s-hres" class="screen">
   <div class="hero">
     <div class="r-ico" id="hr-ico">🎭</div>
@@ -284,7 +292,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: JOIN -->
+<!-- PLAYER JOIN -->
 <div id="s-pjoin" class="screen">
   <div class="hero">
     <div class="logo-badge"><div class="logo-big">B!</div></div>
@@ -297,10 +305,11 @@ body{display:flex;justify-content:center}
       <button class="btn btn-gold" id="btn-join" onclick="playerJoin()" disabled>Connettiti →</button>
       <button class="btn btn-out btn-sm" onclick="show('s-home')">← Home</button>
     </div>
+    <p class="hint" id="join-status" style="min-height:20px"></p>
   </div>
 </div>
 
-<!-- PLAYER: ATTESA LOBBY -->
+<!-- PLAYER ATTESA -->
 <div id="s-pwait" class="screen">
   <div class="hero">
     <div style="font-size:48px">⏳</div>
@@ -311,7 +320,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: CONFERMA PARTECIPAZIONE -->
+<!-- PLAYER CONFERMA ROUND -->
 <div id="s-pconfirm" class="screen">
   <div class="hero">
     <div style="font-size:52px">🎮</div>
@@ -324,17 +333,17 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: USCITO -->
+<!-- PLAYER USCITO -->
 <div id="s-pexcluded" class="screen">
   <div class="hero">
     <div style="font-size:52px">👋</div>
     <div class="h1">Hai <b>lasciato</b> il gioco</div>
-    <p class="hint">Grazie per aver giocato!<br>Puoi chiudere questa pagina.</p>
+    <p class="hint">Grazie per aver giocato!</p>
     <button class="btn btn-out" onclick="show('s-home')" style="margin-top:0">← Home</button>
   </div>
 </div>
 
-<!-- PLAYER: COVER SCHEDA -->
+<!-- PLAYER COVER -->
 <div id="s-pcover" class="screen">
   <div class="hero">
     <div style="font-size:52px">🤫</div>
@@ -344,7 +353,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: SCHEDA -->
+<!-- PLAYER SCHEDA -->
 <div id="s-pcard" class="screen">
   <div class="hero">
     <div class="pill" id="p-pill">Innocente</div>
@@ -358,7 +367,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: GIRO DICHIARAZIONI -->
+<!-- PLAYER DICHIARAZIONI -->
 <div id="s-pturn" class="screen">
   <div class="hero">
     <div class="h1"><b>Giro dichiarazioni</b></div>
@@ -375,7 +384,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: VOTAZIONE -->
+<!-- PLAYER VOTAZIONE -->
 <div id="s-pvote" class="screen">
   <div class="topbar" style="justify-content:center"><div class="topbar-t" style="font-size:18px">Chi è il <span style="color:var(--red2)">Bastardo</span>?</div></div>
   <p class="hint" style="margin-top:8px">Scegli chi vuoi eliminare</p>
@@ -383,7 +392,7 @@ body{display:flex;justify-content:center}
   <div class="btns"><button class="btn btn-red" id="btn-pvote" onclick="playerVote()" disabled>Vota →</button></div>
 </div>
 
-<!-- PLAYER: ATTESA VOTO -->
+<!-- PLAYER ATTESA VOTO -->
 <div id="s-pvwait" class="screen">
   <div class="hero">
     <div style="font-size:48px">🗳</div>
@@ -393,7 +402,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER/HOST: GUESS -->
+<!-- GUESS -->
 <div id="s-pguess" class="screen">
   <div class="hero">
     <div style="font-size:52px">😈</div>
@@ -407,7 +416,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: ATTESA GUESS -->
+<!-- ATTESA GUESS -->
 <div id="s-pguesswait" class="screen">
   <div class="hero">
     <div style="font-size:48px">⏳</div>
@@ -417,7 +426,7 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- PLAYER: RISULTATO -->
+<!-- PLAYER RISULTATO -->
 <div id="s-pres" class="screen">
   <div class="hero">
     <div class="r-ico" id="pr-ico">🎭</div>
@@ -430,8 +439,23 @@ body{display:flex;justify-content:center}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="wordbank.js"></script>
 <script>
-var DEFAULT_KEY = '';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURAZIONE
+// ═══════════════════════════════════════════════════════════════════════════
+var CFG = {
+  TURN_SEC: 15,          // secondi per dichiarazione
+  MAX_IMP_WINDOW: 2,     // max volte impostore negli ultimi N round
+  IMP_WINDOW: 5,
+  HEARTBEAT_INTERVAL: 4000,   // ping ogni 4s
+  HEARTBEAT_TIMEOUT: 13000,   // se non risponde in 13s → perso
+  ACK_TIMEOUT: 3000,          // attesa ACK per messaggi critici
+  ACK_RETRIES: 3,             // tentativi rinvio
+  VOTE_TIMEOUT: 120000,       // 2 min max per la votazione
+  REJOIN_WINDOW: 300000       // 5 min per rientrare
+};
 
 var CATS = [
   {n:'Cibo e Cucina',e:'🍕'},{n:'Sport',e:'⚽'},{n:'Professioni',e:'👔'},
@@ -443,29 +467,54 @@ var CATS = [
   {n:'Cucina del Mondo',e:'🌍'},{n:'Supereroi e Fumetti',e:'🦸'}
 ];
 
-var TURN_SEC = 15;
-var MAX_IMP_WINDOW = 2;
-var IMP_WINDOW = 5;
+// Se esiste wordbank.js, usa automaticamente le categorie presenti nell'archivio locale.
+var CAT_ICONS = {
+  'Sport':'⚽','Animali':'🐾','Cibo':'🍕','Cibo e Cucina':'🍕','Cinema':'🎬','Anni 80/90':'📼',
+  'Oggetti':'🏠','Professioni':'👔','Luoghi Famosi':'🗺️','Musica':'🎵','Natura':'🌿','Tecnologia':'💻',
+  'Storia e Personaggi':'📚','Feste e Tradizioni':'🎉','Scienza e Scoperte':'🔬','Moda e Stile':'👗',
+  'Videogiochi':'🎮','Arte e Pittura':'🎨','Trasporti e Veicoli':'🚗','Mitologia e Leggende':'⚡',
+  'Cucina del Mondo':'🌍','Supereroi e Fumetti':'🦸'
+};
+if (typeof WORD_BANK !== 'undefined' && Array.isArray(WORD_BANK) && WORD_BANK.length) {
+  var seenCats = {};
+  CATS = WORD_BANK.map(function(p){ return p.cat; })
+    .filter(function(c){ if(!c || seenCats[c]) return false; seenCats[c]=true; return true; })
+    .map(function(c){ return {n:c, e:CAT_ICONS[c] || '🎲'}; });
+}
 
-// ── HOST STATE ────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST STATE
+// ═══════════════════════════════════════════════════════════════════════════
 var H = {
   np:4, hostPlays:true, hostName:'Host', apiKey:'',
   usedCats:[], selCat:null, customCat:'', wordPair:null,
-  peer:null, conns:{}, connNames:{}, connStatus:{},
+  peer:null, conns:{}, connNames:{}, connPids:{},
   roomCode:'', players:[], votes:{}, phase:'',
   impIndex:-1, impHistory:[], lastImp:null,
-  turnOrder:[], turnIndex:0, timerInt:null, tl:TURN_SEC,
+  turnOrder:[], turnIndex:0, timerInt:null, tl:CFG.TURN_SEC,
   hostLocal:{word:'',isImp:false,seen:false,voted:false,selVote:null},
-  pendingResult:null, isNewRound:false, confirmed:{}
+  pendingResult:null, isNewRound:false, confirmed:{},
+  // Rete robusta
+  heartbeatInt:null,
+  lastSeen:{},       // pid → timestamp ultimo messaggio ricevuto
+  playerStatus:{},   // name → stato corrente
+  voteTimeout:null,
+  msgSeq:0,          // sequenza messaggi per evitare duplicati
+  ackPending:{}      // seq → {pids, timer, msg, retries}
 };
 
-// ── PLAYER STATE ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER STATE
+// ═══════════════════════════════════════════════════════════════════════════
 var P = {
   peer:null, conn:null, myName:'', myWord:'', isImp:false,
-  allPlayers:[], selVote:null, voted:false, timerInt:null
+  allPlayers:[], selVote:null, voted:false, timerInt:null,
+  heartbeatInt:null, reconnecting:false, lastRoomCode:''
 };
 
-// ── UTILITIES ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
 function show(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('on'); });
   document.getElementById(id).classList.add('on');
@@ -476,41 +525,129 @@ function safe(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function escId(s) {
-  return (s||'').replace(/[^a-zA-Z0-9]/g,'_');
-}
+function escId(s) { return (s||'').replace(/[^a-zA-Z0-9]/g,'_'); }
 
 function shuffle(arr) {
-  for (var i = arr.length-1; i > 0; i--) {
-    var j = Math.floor(Math.random()*(i+1));
-    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
-  }
-  return arr;
+  var a = arr.slice();
+  for (var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
 }
 
 function normalize(s) {
-  return (s||'').toLowerCase().trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9]/g,'');
+  return (s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
 
+function ts() { return Date.now(); }
+
+// Indicatore connessione
+function netBadge(txt, cls) {
+  var b = document.getElementById('net-badge');
+  b.textContent = txt;
+  b.className = 'net-badge show ' + cls;
+  clearTimeout(b._t);
+  if (cls === 'net-ok') b._t = setTimeout(function(){ b.classList.remove('show'); }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BROADCAST CON ACK
+// ═══════════════════════════════════════════════════════════════════════════
 function broadcast(msg) {
-  Object.values(H.conns).forEach(function(c){ try{ c.send(msg); }catch(e){} });
+  Object.values(H.conns).forEach(function(c){ safeSend(c, msg); });
 }
 
 function broadcastExcept(msg, name) {
   Object.keys(H.connNames).forEach(function(pid){
-    if (H.connNames[pid] !== name && H.conns[pid]) {
-      try{ H.conns[pid].send(msg); }catch(e){}
-    }
+    if (H.connNames[pid] !== name && H.conns[pid]) safeSend(H.conns[pid], msg);
   });
 }
 
-// ── HOME ──────────────────────────────────────────────────────────────────
+function safeSend(conn, msg) {
+  try {
+    if (conn && conn.open !== false) conn.send(msg);
+  } catch(e) { console.warn('Send error:', e); }
+}
+
+// Invia messaggio critico con ACK e retry
+function broadcastCritical(msg, onAllAck) {
+  H.msgSeq++;
+  var seq = H.msgSeq;
+  var m = Object.assign({}, msg, {_seq: seq, _ack: true});
+  var pids = Object.keys(H.conns).filter(function(p){ return H.conns[p] && H.conns[p].open !== false; });
+  var pending = pids.slice();
+
+  if (pending.length === 0) { if (onAllAck) onAllAck(); return; }
+
+  function tryAck(retriesLeft) {
+    pending.forEach(function(pid){ if(H.conns[pid]) safeSend(H.conns[pid], m); });
+    H.ackPending[seq] = {
+      pending: pending.slice(),
+      onAllAck: onAllAck,
+      timer: setTimeout(function(){
+        if (retriesLeft > 0) {
+          tryAck(retriesLeft - 1);
+        } else {
+          // Timeout: considera persi i giocatori che non hanno risposto
+          var lost = H.ackPending[seq] ? H.ackPending[seq].pending : [];
+          lost.forEach(function(pid){
+            var nm = H.connNames[pid];
+            if (nm) { H.playerStatus[nm] = 'perso'; }
+          });
+          delete H.ackPending[seq];
+          if (onAllAck) onAllAck();
+          renderCtrl();
+        }
+      }, CFG.ACK_TIMEOUT)
+    };
+  }
+  tryAck(CFG.ACK_RETRIES);
+}
+
+function handleAck(pid, seq) {
+  if (!H.ackPending[seq]) return;
+  var entry = H.ackPending[seq];
+  var idx = entry.pending.indexOf(pid);
+  if (idx >= 0) entry.pending.splice(idx, 1);
+  if (entry.pending.length === 0) {
+    clearTimeout(entry.timer);
+    delete H.ackPending[seq];
+    if (entry.onAllAck) entry.onAllAck();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST HEARTBEAT
+// ═══════════════════════════════════════════════════════════════════════════
+function startHostHeartbeat() {
+  stopHostHeartbeat();
+  H.heartbeatInt = setInterval(function(){
+    var now = ts();
+    Object.keys(H.conns).forEach(function(pid){
+      safeSend(H.conns[pid], {type:'ping', t: now});
+      // Controlla se il giocatore è scomparso
+      var last = H.lastSeen[pid] || now;
+      if (now - last > CFG.HEARTBEAT_TIMEOUT) {
+        var nm = H.connNames[pid];
+        if (nm && H.playerStatus[nm] !== 'perso') {
+          H.playerStatus[nm] = 'perso';
+          console.log('Giocatore perso:', nm);
+          renderCtrl();
+          // Se in fase voto, controlla se possiamo chiudere
+          if (H.phase === 'voting') checkVotingComplete();
+        }
+      }
+    });
+  }, CFG.HEARTBEAT_INTERVAL);
+}
+
+function stopHostHeartbeat() {
+  if (H.heartbeatInt) { clearInterval(H.heartbeatInt); H.heartbeatInt = null; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════════════
 function initHost() {
-  H.apiKey = localStorage.getItem('b_key') || '';
-  localStorage.setItem('b_key', H.apiKey);
-  document.getElementById('api-key').value = H.apiKey;
+  H.apiKey = '';
   H.np = 4; H.players = []; H.hostPlays = true;
   document.getElementById('host-name').value = localStorage.getItem('b_host_name') || '';
   setHostMode(true);
@@ -521,10 +658,13 @@ function initPlayer() {
   document.getElementById('room-inp').value = '';
   document.getElementById('player-name-inp').value = '';
   document.getElementById('btn-join').disabled = true;
+  document.getElementById('join-status').textContent = '';
   show('s-pjoin');
 }
 
-// ── HOST MODE ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST MODE & SETUP
+// ═══════════════════════════════════════════════════════════════════════════
 function setHostMode(v) {
   H.hostPlays = v;
   document.getElementById('mode-player').classList.toggle('pick', v);
@@ -534,7 +674,7 @@ function setHostMode(v) {
 
 function goHostSetup() {
   if (H.hostPlays) {
-    var n = (document.getElementById('host-name').value || '').trim();
+    var n = (document.getElementById('host-name').value||'').trim();
     if (!n) { alert('Inserisci il nome dell\'host giocatore.'); return; }
     H.hostName = n;
     localStorage.setItem('b_host_name', n);
@@ -543,9 +683,8 @@ function goHostSetup() {
   show('s-hsetup');
 }
 
-// ── HOST SETUP ────────────────────────────────────────────────────────────
 function chgP(d) {
-  H.np = Math.min(20, Math.max(3, H.np + d));
+  H.np = Math.min(20, Math.max(3, H.np+d));
   renderNumCtrl();
 }
 
@@ -553,683 +692,951 @@ function renderNumCtrl() {
   document.getElementById('p-disp').textContent = H.np;
   document.getElementById('btn-m').disabled = H.np <= 3;
   document.getElementById('btn-p').disabled = H.np >= 20;
-  var ext = H.hostPlays ? Math.max(0, H.np-1) : H.np;
+  var ext = H.hostPlays ? Math.max(0,H.np-1) : H.np;
   document.getElementById('np-hint').textContent = H.hostPlays
-    ? 'Include anche l\'host: servono ' + ext + ' connessioni esterne.'
-    : 'L\'host non gioca: servono ' + ext + ' connessioni esterne.';
+    ? 'Include anche l\'host: servono '+ext+' connessioni esterne.'
+    : 'L\'host non gioca: servono '+ext+' connessioni esterne.';
 }
 
 function goCategory() {
-  H.apiKey = document.getElementById('api-key').value.trim();
-  if (!H.apiKey) { alert('Inserisci la API Key OpenAI per continuare.'); return; }
-  localStorage.setItem('b_key', H.apiKey);
   H.players = []; H.selCat = null; H.wordPair = null;
+  document.getElementById('btn-cat-back').onclick = function(){ show('s-hsetup'); };
   renderCatGrid();
   document.getElementById('ai-area').innerHTML = '';
   document.getElementById('btn-gen').disabled = true;
   document.getElementById('btn-gen').style.display = 'flex';
   document.getElementById('custom-cat').value = '';
-  document.getElementById('custom-cat').oninput = function() {
+  document.getElementById('custom-cat').oninput = function(){
     H.customCat = this.value.trim();
-    if (H.customCat) { H.selCat = 'custom'; renderCatGrid(); document.getElementById('btn-gen').disabled = false; }
+    if (H.customCat) { H.selCat='custom'; renderCatGrid(); document.getElementById('btn-gen').disabled=false; }
   };
   show('s-hcat');
 }
 
-// ── CATEGORY ──────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CATEGORIE
+// ═══════════════════════════════════════════════════════════════════════════
 function renderCatGrid() {
   document.getElementById('cat-grid').innerHTML = CATS.map(function(c,i){
-    var cls = 'cat' + (H.selCat===i?' pick':'') + (H.usedCats.indexOf(i)>=0?' used':'');
+    var cls = 'cat'+(H.selCat===i?' pick':'')+(H.usedCats.indexOf(i)>=0?' used':'');
     return '<div class="'+cls+'" onclick="pickCat('+i+')"><span class="cat-ico">'+c.e+'</span><span>'+c.n+'</span></div>';
   }).join('');
 }
 
 function pickCat(i) {
-  H.selCat = i; H.customCat = '';
-  document.getElementById('custom-cat').value = '';
+  H.selCat=i; H.customCat='';
+  document.getElementById('custom-cat').value='';
   renderCatGrid();
-  document.getElementById('btn-gen').disabled = false;
+  document.getElementById('btn-gen').disabled=false;
 }
 
-// ── AI GENERATION ─────────────────────────────────────────────────────────
-async function genWords() {
+// ═══════════════════════════════════════════════════════════════════════════
+// WORD BANK LOCALE
+// ═══════════════════════════════════════════════════════════════════════════
+function pairId(pair) {
+  return normalize(pair.cat)+'|'+normalize(pair.a)+'|'+normalize(pair.b);
+}
+
+function readUsedPairs() {
+  try { return JSON.parse(localStorage.getItem('b_used_pairs') || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveUsedPair(id) {
+  var used = readUsedPairs().filter(function(x){ return x !== id; });
+  used.push(id);
+  if (used.length > 80) used = used.slice(used.length - 80);
+  localStorage.setItem('b_used_pairs', JSON.stringify(used));
+}
+
+function getBankPairs(cat) {
+  if (typeof WORD_BANK === 'undefined' || !Array.isArray(WORD_BANK) || !WORD_BANK.length) return [];
+  var nc = normalize(cat);
+  return WORD_BANK.filter(function(p){
+    var pc = normalize(p.cat || '');
+    return pc === nc || pc.indexOf(nc) >= 0 || nc.indexOf(pc) >= 0;
+  });
+}
+
+function pickWordPairFromBank(cat) {
+  var pairs = getBankPairs(cat);
+  if (!pairs.length) {
+    return null;
+  }
+  var used = readUsedPairs();
+  var fresh = pairs.filter(function(p){ return used.indexOf(pairId(p)) < 0; });
+  var pool = fresh.length ? fresh : pairs;
+  var pair = pool[Math.floor(Math.random() * pool.length)];
+  saveUsedPair(pairId(pair));
+
+  // Inversione casuale: la stessa coppia può funzionare in entrambi i sensi.
+  if (Math.random() < 0.5) {
+    return {innocenti: pair.a, impostore: pair.b, cat: pair.cat};
+  }
+  return {innocenti: pair.b, impostore: pair.a, cat: pair.cat};
+}
+
+function genWords() {
   var cat = H.selCat === 'custom' ? H.customCat : CATS[H.selCat].n;
   document.getElementById('ai-area').innerHTML =
-    '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px">' +
-    '<div class="spinner"></div><div class="hint">L\'AI sta generando le parole...</div></div>';
+    '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px">'+
+    '<div class="spinner"></div><div class="hint">Sto estraendo una coppia dall\'archivio...</div></div>';
   document.getElementById('btn-gen').disabled = true;
 
-  var prompt = 'Sei il motore del party game "Bastardo!". Tutti ricevono la stessa parola, tranne un impostore che riceve una parola simile ma diversa.\n\n' +
-    'Categoria: "' + cat + '"\n\n' +
-    'REGOLE OBBLIGATORIE:\n' +
-    '1. Entrambe le parole devono essere REALI ed ESISTENTI - mai inventate o combinate\n' +
-    '2. Entrambe appartengono alla categoria indicata\n' +
-    '3. Simili da rendere difficile il bluff, diverse da permettere di smascherare l\'impostore\n\n' +
-    'ESEMPI: Sport={innocenti:Tennis,impostore:Padel} Feste={innocenti:Natale,impostore:Epifania}\n\n' +
-    'Rispondi SOLO con JSON valido: {"innocenti":"...","impostore":"..."}';
+  setTimeout(function(){
+    var picked = pickWordPairFromBank(cat);
+    if (!picked) {
+      document.getElementById('ai-area').innerHTML =
+        '<div class="ai-box" style="border-color:rgba(192,24,26,.5)">'+
+        '<div class="hint" style="color:var(--red2)">Nessuna coppia disponibile per questa categoria.<br>Aggiungi coppie in wordbank.js oppure scegli un\'altra categoria.</div></div>';
+      document.getElementById('btn-gen').disabled = false;
+      return;
+    }
 
-  try {
-    var res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':'Bearer '+H.apiKey},
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', max_tokens: 80, temperature: 0.9,
-        messages: [{role:'user', content: prompt}]
-      })
-    });
-    var data = await res.json();
-    var txt = data.choices[0].message.content.trim().replace(/```json|```/g,'');
-    H.wordPair = JSON.parse(txt);
-
+    H.wordPair = {innocenti:picked.innocenti, impostore:picked.impostore};
     var hidden = H.hostPlays;
-    var catHtml = '<div class="ai-box"><div class="ai-row"><span class="ai-lbl">Categoria</span><span class="ai-val">' + safe(cat) + '</span></div>';
+    var catHtml = '<div class="ai-box">'+
+      '<div class="ai-row"><span class="ai-lbl">Categoria</span><span class="ai-val">'+safe(picked.cat)+'</span></div>';
     if (!hidden) {
-      catHtml += '<div class="ai-row"><span class="ai-lbl">Parola innocenti</span><span class="ai-val">' + safe(H.wordPair.innocenti) + '</span></div>';
-      catHtml += '<div class="ai-row"><span class="ai-lbl">Parola Bastardo</span><span class="ai-val red">' + safe(H.wordPair.impostore) + '</span></div>';
+      catHtml += '<div class="ai-row"><span class="ai-lbl">Parola innocenti</span><span class="ai-val">'+safe(H.wordPair.innocenti)+'</span></div>'+
+        '<div class="ai-row"><span class="ai-lbl">Parola Bastardo</span><span class="ai-val red">'+safe(H.wordPair.impostore)+'</span></div>';
     } else {
-      catHtml += '<div class="hint">Parole generate e nascoste perché l\'host gioca.</div>';
+      catHtml += '<div class="hint" style="padding:8px 0">Coppia estratta e nascosta perché l\'host gioca.</div>';
     }
     catHtml += '</div>';
-
     var btnLabel = H.isNewRound ? 'Avvia nuovo round →' : 'Vai alla lobby →';
-    var btnAction = H.isNewRound ? 'hostStartDirect()' : 'goLobby()';
-
-    document.getElementById('ai-area').innerHTML =
-      catHtml +
-      '<button class="btn btn-red w100" style="margin-top:12px" onclick="' + btnAction + '">' + btnLabel + '</button>' +
-      '<button class="btn btn-out btn-sm w100" style="margin-top:8px" onclick="genWords()">Rigenera ↻</button>';
-    document.getElementById('btn-gen').style.display = 'none';
-  } catch(e) {
-    document.getElementById('ai-area').innerHTML =
-      '<div class="ai-box" style="border-color:rgba(192,24,26,.5)"><div class="hint" style="color:var(--red2)">Errore API. Controlla la chiave e la connessione.</div></div>';
-    document.getElementById('btn-gen').disabled = false;
-  }
+    var btnFn = H.isNewRound ? 'hostStartDirect()' : 'goLobby()';
+    document.getElementById('ai-area').innerHTML = catHtml+
+      '<button class="btn btn-red w100" style="margin-top:12px" onclick="'+btnFn+'">'+btnLabel+'</button>'+
+      '<button class="btn btn-out btn-sm w100" style="margin-top:8px" onclick="genWords()">Riestrai ↻</button>';
+    document.getElementById('btn-gen').style.display='none';
+  }, 250);
 }
 
-// ── LOBBY ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// LOBBY
+// ═══════════════════════════════════════════════════════════════════════════
 function goLobby() {
-  if (H.selCat !== 'custom') H.usedCats.push(H.selCat);
-  var ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  H.roomCode = Array.from({length:6}, function(){ return ch[Math.floor(Math.random()*ch.length)]; }).join('');
-  document.getElementById('room-code').textContent = H.roomCode;
-  document.getElementById('conn-tot').textContent = H.hostPlays ? H.np-1 : H.np;
-  document.getElementById('conn-n').textContent = '0';
-  document.getElementById('btn-startg').disabled = true;
-  document.getElementById('qr-area').innerHTML = '';
-  try { new QRCode(document.getElementById('qr-area'), {text:H.roomCode,width:130,height:130,colorDark:'#1A1A1A',colorLight:'#ffffff'}); } catch(e){}
-  H.conns = {}; H.connNames = {}; H.connStatus = {};
-  if (H.hostPlays) { H.players = [H.hostName]; H.connStatus[H.hostName] = 'host'; }
-  else H.players = [];
-  if (H.peer) { try{ H.peer.destroy(); }catch(e){} }
-  H.peer = new Peer(H.roomCode, {debug:0});
-  H.peer.on('error', function(e){
-    if (e.type === 'unavailable-id') {
-      var r = H.roomCode + Math.floor(Math.random()*9);
-      H.roomCode = r;
-      document.getElementById('room-code').textContent = r;
-      H.peer = new Peer(r, {debug:0});
-      H.peer.on('connection', handleConn);
+  if (H.selCat!=='custom') H.usedCats.push(H.selCat);
+  var ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  H.roomCode=Array.from({length:6},function(){return ch[Math.floor(Math.random()*ch.length)];}).join('');
+  document.getElementById('room-code').textContent=H.roomCode;
+  document.getElementById('conn-tot').textContent=H.hostPlays?H.np-1:H.np;
+  document.getElementById('conn-n').textContent='0';
+  document.getElementById('btn-startg').disabled=true;
+  document.getElementById('qr-area').innerHTML='';
+  try{new QRCode(document.getElementById('qr-area'),{text:H.roomCode,width:130,height:130,colorDark:'#1A1A1A',colorLight:'#ffffff'});}catch(e){}
+  H.conns={}; H.connNames={}; H.connPids={}; H.lastSeen={}; H.playerStatus={};
+  H.ackPending={};
+  if(H.hostPlays){H.players=[H.hostName];H.playerStatus[H.hostName]='connesso';}
+  else H.players=[];
+  stopHostHeartbeat();
+  if(H.peer){try{H.peer.destroy();}catch(e){}}
+  H.peer=new Peer(H.roomCode,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  H.peer.on('error',function(e){
+    if(e.type==='unavailable-id'){
+      var r=H.roomCode+Math.floor(Math.random()*9);
+      H.roomCode=r;
+      document.getElementById('room-code').textContent=r;
+      H.peer=new Peer(r,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+      H.peer.on('connection',handleConn);
     }
   });
-  H.peer.on('connection', handleConn);
+  H.peer.on('connection',handleConn);
   updateLobby();
   show('s-hlobby');
 }
 
 function handleConn(conn) {
-  conn.on('open', function(){
-    var extLimit = H.hostPlays ? H.np-1 : H.np;
-    if (Object.keys(H.connNames).length >= extLimit) {
-      conn.send({type:'full'}); conn.close(); return;
-    }
-    H.conns[conn.peer] = conn;
-    var welcomed = false;
-    conn.on('data', function(d){
-      if (!welcomed && d.type === 'hello') {
-        welcomed = true;
-        var name = uniqueName(d.name || ('Giocatore ' + (H.players.length+1)));
-        H.connNames[conn.peer] = name;
-        H.connStatus[name] = 'connesso';
-        if (H.players.indexOf(name) < 0) H.players.push(name);
-        conn.send({type:'welcome', name:name, players:H.players});
-        broadcast({type:'playerJoined', players:H.players});
+  conn.on('open',function(){
+    H.lastSeen[conn.peer]=ts();
+    var extLimit=H.hostPlays?H.np-1:H.np;
+    var currentExt=Object.keys(H.connNames).length;
+
+    conn.on('data',function(d){
+      H.lastSeen[conn.peer]=ts();
+
+      // Risposta ACK
+      if(d._seq && d._ackReply){
+        handleAck(conn.peer, d._seq);
+        return;
+      }
+      // Ping/pong
+      if(d.type==='pong') return;
+
+      if(d.type==='hello'){
+        // Controlla se è un rejoin
+        var existingPid=H.connPids[d.name];
+        if(existingPid && H.connNames[existingPid]===d.name){
+          // Rejoin: aggiorna connessione
+          delete H.conns[existingPid];
+          H.conns[conn.peer]=conn;
+          H.connNames[conn.peer]=d.name;
+          H.connPids[d.name]=conn.peer;
+          H.playerStatus[d.name]='riconnesso';
+          // Invia stato corrente
+          sendGameState(conn, d.name);
+          updateLobby();
+          netBadge(d.name+' riconnesso', 'net-ok');
+          return;
+        }
+        // Nuova connessione
+        if(currentExt>=extLimit){conn.send({type:'full'});conn.close();return;}
+        currentExt++;
+        H.conns[conn.peer]=conn;
+        var name=uniqueName(d.name||('Giocatore '+(H.players.length+1)));
+        H.connNames[conn.peer]=name;
+        H.connPids[name]=conn.peer;
+        H.playerStatus[name]='connesso';
+        if(H.players.indexOf(name)<0) H.players.push(name);
+        conn.send({type:'welcome',name:name,players:H.players});
+        broadcast({type:'playerJoined',players:H.players});
         updateLobby();
-      } else if (welcomed) {
+      } else {
         onPlayerMsg(conn.peer, d);
       }
     });
-    conn.on('close', function(){
-      var nm = H.connNames[conn.peer];
-      if (nm) H.connStatus[nm] = 'disconnesso';
+
+    conn.on('close',function(){
+      var nm=H.connNames[conn.peer];
+      if(nm){
+        H.playerStatus[nm]='disconnesso';
+        // Non rimuoviamo subito per permettere il rejoin
+        setTimeout(function(){
+          if(H.playerStatus[nm]==='disconnesso'){
+            H.playerStatus[nm]='perso';
+            renderCtrl();
+            if(H.phase==='voting') checkVotingComplete();
+          }
+        }, CFG.REJOIN_WINDOW);
+      }
       updateLobby();
+      renderCtrl();
     });
   });
 }
 
+function sendGameState(conn, name) {
+  var state={type:'gameState',players:H.players,phase:H.phase,roomCode:H.roomCode};
+  if(H.phase==='cards'){
+    var idx=H.players.indexOf(name);
+    if(idx>=0){
+      state.word=idx===H.impIndex?H.wordPair.impostore:H.wordPair.innocenti;
+      state.isImpostor=idx===H.impIndex;
+      state.myName=name;
+    }
+  }
+  if(H.phase==='statements'){
+    state.order=H.turnOrder;
+    state.current=H.turnOrder[H.turnIndex];
+    state.index=H.turnIndex;
+    state.total=H.turnOrder.length;
+    state.seconds=H.tl;
+  }
+  if(H.phase==='voting'){
+    state.votePlayers=H.players;
+  }
+  safeSend(conn, state);
+}
+
 function uniqueName(base) {
-  base = (base||'Giocatore').trim().slice(0,14);
-  var n = base, i = 2;
-  while (H.players.indexOf(n) >= 0) { n = (base+' '+i).slice(0,14); i++; }
+  base=(base||'Giocatore').trim().slice(0,14);
+  var n=base,i=2;
+  while(H.players.indexOf(n)>=0){n=(base+' '+i).slice(0,14);i++;}
   return n;
 }
 
 function updateLobby() {
-  var extConnected = Object.keys(H.connNames).length;
-  var extNeed = H.hostPlays ? H.np-1 : H.np;
-  document.getElementById('conn-n').textContent = extConnected;
-  document.getElementById('btn-startg').disabled = extConnected < extNeed;
-  var rows = H.players.map(function(nm){
-    return '<div class="p-row"><div class="p-dot on"></div><div class="p-name">' +
-      safe(nm) + (H.hostPlays && nm===H.hostName?' (host)':'') +
-      '</div><div class="p-stat">' + safe(H.connStatus[nm]||'connesso') + '</div></div>';
+  var extConnected=Object.keys(H.connNames).filter(function(p){
+    return H.playerStatus[H.connNames[p]]==='connesso'||H.playerStatus[H.connNames[p]]==='riconnesso';
+  }).length;
+  var extNeed=H.hostPlays?H.np-1:H.np;
+  var el_n=document.getElementById('conn-n');
+  var el_tot=document.getElementById('conn-tot');
+  var el_btn=document.getElementById('btn-startg');
+  if(el_n) el_n.textContent=extConnected;
+  if(el_tot) el_tot.textContent=extNeed;
+  if(el_btn) el_btn.disabled=extConnected<extNeed;
+  var rows=H.players.map(function(nm){
+    var st=H.playerStatus[nm]||'connesso';
+    var dot=st==='connesso'||st==='riconnesso'?'on':st==='perso'||st==='disconnesso'?'red':'orange';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(nm)+(H.hostPlays&&nm===H.hostName?' (host)':'')+'</div>'+
+      '<div class="p-stat">'+safe(st)+'</div></div>';
   });
-  for (var i = extConnected; i < extNeed; i++) {
-    rows.push('<div class="p-row"><div class="p-dot"></div><div class="p-name" style="color:var(--dim)">Posto libero...</div><div class="p-stat">in attesa</div></div>');
+  for(var i=extConnected;i<extNeed;i++){
+    rows.push('<div class="p-row"><div class="p-dot"></div>'+
+      '<div class="p-name" style="color:var(--dim)">Posto libero...</div>'+
+      '<div class="p-stat">in attesa</div></div>');
   }
-  document.getElementById('lobby-list').innerHTML = rows.join('');
+  var ll=document.getElementById('lobby-list');
+  if(ll) ll.innerHTML=rows.join('');
 }
 
-// ── NUOVO ROUND: CONFERME ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// NUOVO ROUND
+// ═══════════════════════════════════════════════════════════════════════════
 function hostNewRound() {
-  H.phase = ''; H.votes = {}; H.connStatus = {}; H.wordPair = null; H.selCat = null;
-  H.isNewRound = true; H.confirmed = {};
-  H.hostLocal = {word:'',isImp:false,seen:false,voted:false,selVote:null};
-  if (H.hostPlays) { H.confirmed[H.hostName] = true; H.connStatus[H.hostName] = 'host'; }
-  // Resetta status tutti i giocatori remoti
-  Object.values(H.connNames).forEach(function(n){ H.connStatus[n] = 'in attesa'; });
+  stopHostHeartbeat();
+  clearTimeout(H.voteTimeout);
+  H.phase=''; H.votes={}; H.wordPair=null; H.selCat=null;
+  H.isNewRound=true; H.confirmed={};
+  H.hostLocal={word:'',isImp:false,seen:false,voted:false,selVote:null};
+  H.playerStatus={};
+  if(H.hostPlays){H.confirmed[H.hostName]=true;H.playerStatus[H.hostName]='host';}
+  Object.values(H.connNames).forEach(function(n){H.playerStatus[n]='in attesa';});
   broadcast({type:'roundConfirm'});
   renderNewLobby();
   show('s-hnewlobby');
 }
 
 function renderNewLobby() {
-  var names = Object.values(H.connNames);
-  var tot = names.length;
-  var conf = names.filter(function(n){ return H.confirmed[n] === true; }).length;
-  document.getElementById('nl-n').textContent = conf;
-  document.getElementById('nl-tot').textContent = tot;
-  var rows = names.map(function(n){
-    var s = H.confirmed[n];
-    var dot = s === true ? 'on' : (s === false ? 'red' : '');
-    var stat = s === true ? 'partecipa ✓' : (s === false ? 'uscito' : 'in attesa...');
-    return '<div class="p-row"><div class="p-dot ' + dot + '"></div><div class="p-name">' +
-      safe(n) + '</div><div class="p-stat">' + stat + '</div></div>';
+  var names=Object.values(H.connNames).filter(function(n){
+    return H.playerStatus[n]!=='perso';
   });
-  document.getElementById('nl-list').innerHTML = rows.join('');
-  var allAnswered = names.every(function(n){ return H.confirmed[n] !== undefined; });
-  document.getElementById('btn-nl-go').textContent = allAnswered ? 'Avvia round →' : 'Scegli categoria →';
+  var tot=names.length;
+  var conf=names.filter(function(n){return H.confirmed[n]===true;}).length;
+  document.getElementById('nl-n').textContent=conf;
+  document.getElementById('nl-tot').textContent=tot;
+  document.getElementById('nl-list').innerHTML=names.map(function(n){
+    var s=H.confirmed[n];
+    var dot=s===true?'on':s===false?'red':'';
+    var stat=s===true?'partecipa ✓':s===false?'uscito':'in attesa...';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(n)+'</div><div class="p-stat">'+stat+'</div></div>';
+  }).join('');
+  var allAnswered=names.every(function(n){return H.confirmed[n]!==undefined;});
+  document.getElementById('btn-nl-go').textContent=allAnswered?'Avvia round →':'Scegli categoria →';
 }
 
 function hostGoCategory() {
-  var activeNames = Object.keys(H.confirmed).filter(function(n){ return H.confirmed[n] === true; });
-  if (H.hostPlays) {
-    H.players = [H.hostName];
-    activeNames.forEach(function(n){ if (n !== H.hostName && H.players.indexOf(n) < 0) H.players.push(n); });
+  var activeNames=Object.keys(H.confirmed).filter(function(n){return H.confirmed[n]===true;});
+  if(H.hostPlays){
+    H.players=[H.hostName];
+    activeNames.forEach(function(n){if(n!==H.hostName&&H.players.indexOf(n)<0)H.players.push(n);});
   } else {
-    H.players = activeNames;
+    H.players=activeNames;
   }
-  H.np = H.players.length;
-  if (H.players.length < 3) { alert('Non ci sono abbastanza giocatori (minimo 3).'); return; }
-  broadcast({type:'confirmedList', players:H.players});
+  H.np=H.players.length;
+  if(H.players.length<3){alert('Non ci sono abbastanza giocatori (minimo 3).');return;}
+  broadcast({type:'confirmedList',players:H.players});
+  document.getElementById('btn-cat-back').onclick=function(){hostNewRound();};
   renderCatGrid();
-  document.getElementById('ai-area').innerHTML = '';
-  document.getElementById('btn-gen').disabled = true;
-  document.getElementById('btn-gen').style.display = 'flex';
-  document.getElementById('custom-cat').value = '';
-  document.getElementById('custom-cat').oninput = function() {
-    H.customCat = this.value.trim();
-    if (H.customCat) { H.selCat = 'custom'; renderCatGrid(); document.getElementById('btn-gen').disabled = false; }
+  document.getElementById('ai-area').innerHTML='';
+  document.getElementById('btn-gen').disabled=true;
+  document.getElementById('btn-gen').style.display='flex';
+  document.getElementById('custom-cat').value='';
+  document.getElementById('custom-cat').oninput=function(){
+    H.customCat=this.value.trim();
+    if(H.customCat){H.selCat='custom';renderCatGrid();document.getElementById('btn-gen').disabled=false;}
   };
   show('s-hcat');
 }
 
 function hostStartDirect() {
-  if (H.selCat !== 'custom') H.usedCats.push(H.selCat);
-  H.isNewRound = false;
-  document.getElementById('host-local-card').style.display = 'none';
+  if(H.selCat!=='custom') H.usedCats.push(H.selCat);
+  H.isNewRound=false;
+  document.getElementById('host-local-card').style.display='none';
   hostStart();
 }
 
-// ── HOST GAME ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// GIOCO
+// ═══════════════════════════════════════════════════════════════════════════
 function chooseImpIndex() {
-  var candidates = H.players.map(function(n,i){ return {n:n,i:i}; });
-  var recent = H.impHistory.slice(-IMP_WINDOW);
-  var counts = {};
-  recent.forEach(function(n){ counts[n] = (counts[n]||0)+1; });
-  candidates = candidates.filter(function(x){ return (counts[x.n]||0) < MAX_IMP_WINDOW; });
-  if (candidates.length > 1 && H.lastImp) candidates = candidates.filter(function(x){ return x.n !== H.lastImp; });
-  if (!candidates.length) candidates = H.players.map(function(n,i){ return {n:n,i:i}; });
-  var pick = candidates[Math.floor(Math.random()*candidates.length)];
-  H.lastImp = pick.n;
-  H.impHistory.push(pick.n);
-  if (H.impHistory.length > 20) H.impHistory.shift();
+  var candidates=H.players.map(function(n,i){return{n:n,i:i};});
+  var recent=H.impHistory.slice(-CFG.IMP_WINDOW);
+  var counts={};recent.forEach(function(n){counts[n]=(counts[n]||0)+1;});
+  candidates=candidates.filter(function(x){return(counts[x.n]||0)<CFG.MAX_IMP_WINDOW;});
+  if(candidates.length>1&&H.lastImp) candidates=candidates.filter(function(x){return x.n!==H.lastImp;});
+  if(!candidates.length) candidates=H.players.map(function(n,i){return{n:n,i:i};});
+  var pick=candidates[Math.floor(Math.random()*candidates.length)];
+  H.lastImp=pick.n; H.impHistory.push(pick.n);
+  if(H.impHistory.length>20) H.impHistory.shift();
   return pick.i;
 }
 
 function hostStart() {
-  if (H.players.length < 3) { alert('Servono almeno 3 giocatori totali.'); return; }
-  H.impIndex = chooseImpIndex();
-  H.phase = 'cards'; H.votes = {}; H.pendingResult = null;
-  H.hostLocal = {word:'',isImp:false,seen:false,voted:false,selVote:null};
-  H.players.forEach(function(n){ H.connStatus[n] = 'scheda non vista'; });
-  H.players.forEach(function(name, idx){
-    var isImp = idx === H.impIndex;
-    var word = isImp ? H.wordPair.impostore : H.wordPair.innocenti;
-    if (H.hostPlays && name === H.hostName) {
-      H.hostLocal.word = word; H.hostLocal.isImp = isImp;
-      H.connStatus[name] = 'scheda non vista';
+  if(H.players.length<3){alert('Servono almeno 3 giocatori totali.');return;}
+  H.impIndex=chooseImpIndex();
+  H.phase='cards'; H.votes={}; H.pendingResult=null;
+  H.hostLocal={word:'',isImp:false,seen:false,voted:false,selVote:null};
+  H.players.forEach(function(n){H.playerStatus[n]='scheda non vista';});
+
+  // Invia schede con ACK
+  H.players.forEach(function(name,idx){
+    var isImp=idx===H.impIndex;
+    var word=isImp?H.wordPair.impostore:H.wordPair.innocenti;
+    if(H.hostPlays&&name===H.hostName){
+      H.hostLocal.word=word; H.hostLocal.isImp=isImp;
     } else {
-      var pid = Object.keys(H.connNames).find(function(k){ return H.connNames[k] === name; });
-      if (pid && H.conns[pid]) H.conns[pid].send({type:'start', word:word, isImpostor:isImp, myName:name, players:H.players});
+      var pid=H.connPids[name];
+      if(pid&&H.conns[pid]){
+        var msg={type:'start',word:word,isImpostor:isImp,myName:name,players:H.players,_seq:++H.msgSeq,_ack:true};
+        H.ackPending[H.msgSeq]={pending:[pid],onAllAck:null,timer:null};
+        // Semplice invio con retry
+        (function retryCard(m,p,tries){
+          safeSend(H.conns[p],m);
+          if(tries>0){
+            H.ackPending[m._seq]&&(H.ackPending[m._seq].timer=setTimeout(function(){
+              if(H.ackPending[m._seq]&&H.ackPending[m._seq].pending.indexOf(p)>=0) retryCard(m,p,tries-1);
+            },CFG.ACK_TIMEOUT));
+          }
+        })(msg,pid,CFG.ACK_RETRIES);
+      }
     }
   });
+
+  startHostHeartbeat();
   renderCtrl();
   showHostLocalCard();
-  document.getElementById('btn-adv').style.display = H.hostPlays ? 'none' : 'flex';
+  document.getElementById('btn-adv').style.display=H.hostPlays?'none':'flex';
   show('s-hctrl');
 }
 
 function showHostLocalCard() {
-  var el = document.getElementById('host-local-card');
-  if (!H.hostPlays) { el.style.display = 'none'; return; }
-  el.style.display = 'block';
-  if (!H.hostLocal.seen) {
-    el.innerHTML = '<div class="ai-box"><div class="hint">Anche tu giochi. Tocca solo quando sei pronto.</div>' +
+  var el=document.getElementById('host-local-card');
+  if(!H.hostPlays){el.style.display='none';return;}
+  el.style.display='block';
+  if(!H.hostLocal.seen){
+    el.innerHTML='<div class="ai-box"><div class="hint">Anche tu giochi. Tocca solo quando sei pronto.</div>'+
       '<button class="btn btn-gold w100" style="margin-top:12px" onclick="hostRevealOwnCard()">Rivela la mia parola →</button></div>';
   } else {
-    var cls = H.hostLocal.isImp ? 'pill-bad' : 'pill-ok';
-    var lbl = H.hostLocal.isImp ? '😈 Sei il Bastardo' : '😇 Sei Innocente';
-    var wcls = H.hostLocal.isImp ? 'imp' : '';
-    var wccls = H.hostLocal.isImp ? ' red' : '';
-    el.innerHTML = '<div class="ai-box">' +
-      '<div class="pill ' + cls + '">' + lbl + '</div>' +
-      '<div class="word-box ' + wcls + '" style="margin:12px auto 0">' +
-        '<div class="w-lbl">La tua parola segreta è</div>' +
-        '<div class="w-word' + wccls + '">' + safe(H.hostLocal.word) + '</div>' +
-        '<div class="w-note">Memorizza e poi continua come tutti gli altri.</div>' +
-      '</div>' +
-      '<button class="btn btn-gold w100" style="margin-top:12px" onclick="hostOwnCardSeen()">Ho visto · Pronto ✓</button>' +
-      '</div>';
+    var cls=H.hostLocal.isImp?'pill-bad':'pill-ok';
+    var lbl=H.hostLocal.isImp?'😈 Sei il Bastardo':'😇 Sei Innocente';
+    el.innerHTML='<div class="ai-box"><div class="pill '+cls+'">'+lbl+'</div>'+
+      '<div class="word-box '+(H.hostLocal.isImp?'imp':'')+'" style="margin:12px auto 0">'+
+      '<div class="w-lbl">La tua parola segreta è</div>'+
+      '<div class="w-word'+(H.hostLocal.isImp?' red':'')+'">'+safe(H.hostLocal.word)+'</div>'+
+      '<div class="w-note">Memorizza e poi continua come tutti gli altri.</div></div>'+
+      '<button class="btn btn-gold w100" style="margin-top:12px" onclick="hostOwnCardSeen()">Ho visto · Pronto ✓</button></div>';
   }
 }
 
-function hostRevealOwnCard() { H.hostLocal.seen = true; showHostLocalCard(); }
+function hostRevealOwnCard(){H.hostLocal.seen=true;showHostLocalCard();}
 
-function hostOwnCardSeen() {
-  H.connStatus[H.hostName] = 'pronto';
-  document.getElementById('host-local-card').style.display = 'none';
+function hostOwnCardSeen(){
+  H.playerStatus[H.hostName]='pronto';
+  document.getElementById('host-local-card').style.display='none';
   renderCtrl();
-  var allReady = H.players.every(function(n){ return H.connStatus[n]==='pronto' || H.connStatus[n]==='host'; });
-  if (allReady) document.getElementById('btn-adv').style.display = 'flex';
+  checkAllReady();
+}
+
+function checkAllReady(){
+  var allReady=H.players.every(function(n){
+    return H.playerStatus[n]==='pronto'||H.playerStatus[n]==='host'||H.playerStatus[n]==='perso';
+  });
+  if(allReady) document.getElementById('btn-adv').style.display='flex';
 }
 
 function renderCtrl() {
-  var phases = {
-    cards:      {ico:'🃏', name:'Distribuzione schede',    sub:'I giocatori stanno leggendo le parole'},
-    statements: {ico:'🎙', name:'Giro dichiarazioni',       sub:'Un giocatore alla volta parla'},
-    voting:     {ico:'🗳', name:'Votazione',                sub:'Raccolta voti in corso'}
+  var phases={
+    cards:{ico:'🃏',name:'Distribuzione schede',sub:'I giocatori stanno leggendo le parole'},
+    statements:{ico:'🎙',name:'Giro dichiarazioni',sub:'Un giocatore alla volta parla'},
+    voting:{ico:'🗳',name:'Votazione',sub:'Raccolta voti in corso'}
   };
-  var ph = phases[H.phase] || phases.cards;
-  document.getElementById('ph-ico').textContent = ph.ico;
-  document.getElementById('ph-name').textContent = ph.name;
-  document.getElementById('ph-sub').textContent = ph.sub;
-  document.getElementById('h-timer').style.display = H.phase==='statements' ? 'block' : 'none';
-  document.getElementById('h-turn-card').style.display = H.phase==='statements' ? 'block' : 'none';
-  document.getElementById('v-bar').style.display = H.phase==='voting' ? 'block' : 'none';
-  document.getElementById('btn-nextturn').style.display = H.phase==='statements' ? 'flex' : 'none';
-  var okStats = ['pronto','votato','ha parlato','sta parlando'];
-  document.getElementById('ctrl-list').innerHTML = H.players.map(function(n){
-    var ok = okStats.indexOf(H.connStatus[n]) >= 0;
-    return '<div class="p-row"><div class="p-dot' + (ok?' on':'') + '"></div>' +
-      '<div class="p-name">' + safe(n) + '</div>' +
-      '<div class="p-stat">' + safe(H.connStatus[n]||'—') + '</div></div>';
+  var ph=phases[H.phase]||phases.cards;
+  document.getElementById('ph-ico').textContent=ph.ico;
+  document.getElementById('ph-name').textContent=ph.name;
+  document.getElementById('ph-sub').textContent=ph.sub;
+  document.getElementById('h-timer').style.display=H.phase==='statements'?'block':'none';
+  document.getElementById('h-turn-card').style.display=H.phase==='statements'?'block':'none';
+  document.getElementById('v-bar').style.display=H.phase==='voting'?'block':'none';
+  document.getElementById('btn-nextturn').style.display=H.phase==='statements'?'flex':'none';
+  document.getElementById('btn-forcevote').style.display=H.phase==='voting'?'flex':'none';
+  var okStats=['pronto','votato','ha parlato','sta parlando'];
+  document.getElementById('ctrl-list').innerHTML=H.players.map(function(n){
+    var st=H.playerStatus[n]||'—';
+    var ok=okStats.indexOf(st)>=0;
+    var dot=ok?'on':st==='perso'||st==='disconnesso'?'red':'';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(n)+'</div>'+
+      '<div class="p-stat">'+safe(st)+'</div></div>';
   }).join('');
 }
 
 function onPlayerMsg(pid, msg) {
-  var name = H.connNames[pid];
-  if (msg.type === 'confirm') {
-    H.confirmed[name] = msg.join;
-    H.connStatus[name] = msg.join ? 'partecipa' : 'esce';
+  var name=H.connNames[pid];
+  H.lastSeen[pid]=ts();
+
+  // Invia ACK se richiesto
+  if(msg._ack && msg._seq) safeSend(H.conns[pid],{type:'ack',_seq:msg._seq,_ackReply:true});
+
+  // Heartbeat response
+  if(msg.type==='pong'){
+    if(name&&H.playerStatus[name]==='perso') netBadge(name+' riconnesso','net-ok');
+    if(name) H.playerStatus[name]=H.playerStatus[name]==='perso'?'riconnesso':H.playerStatus[name];
+    return;
+  }
+
+  if(msg.type==='confirm'){
+    H.confirmed[name]=msg.join;
+    H.playerStatus[name]=msg.join?'partecipa':'uscito';
     renderNewLobby();
   }
-  if (msg.type === 'cardSeen') {
-    H.connStatus[name] = 'pronto';
+
+  if(msg.type==='cardSeen'){
+    H.playerStatus[name]='pronto';
     renderCtrl();
-    var allReady = H.players.every(function(n){ return H.connStatus[n]==='pronto'; });
-    if (allReady) document.getElementById('btn-adv').style.display = 'flex';
+    checkAllReady();
   }
-  if (msg.type === 'vote') {
-    H.votes[name] = msg.target;
-    H.connStatus[name] = 'votato';
-    updateVoteBar();
-    var expected = H.hostPlays ? H.players.length : Object.keys(H.connNames).filter(function(p){ return H.conns[p]; }).length;
-    if (Object.keys(H.votes).length >= expected) hostResultPre();
+
+  if(msg.type==='vote'){
+    if(!H.votes[name]){  // evita voti doppi
+      H.votes[name]=msg.target;
+      H.playerStatus[name]='votato';
+      updateVoteBar();
+      renderCtrl();
+      checkVotingComplete();
+    }
   }
-  if (msg.type === 'guess') { finishResultWithGuess(msg.guess); }
+
+  if(msg.type==='guess'){finishResultWithGuess(msg.guess);}
+
+  if(msg.type==='requestState'){
+    sendGameState(H.conns[pid],name);
+  }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DICHIARAZIONI
+// ═══════════════════════════════════════════════════════════════════════════
 function hostAdvance() {
-  H.phase = 'statements';
-  H.turnOrder = shuffle(H.players.slice());
-  H.turnIndex = 0;
-  H.players.forEach(function(n){ H.connStatus[n] = 'in attesa'; });
-  broadcast({type:'phase', phase:'statements', order:H.turnOrder, current:H.turnOrder[0], index:0, total:H.turnOrder.length, seconds:TURN_SEC});
+  H.phase='statements';
+  H.turnOrder=shuffle(H.players.slice());
+  H.turnIndex=0;
+  H.players.forEach(function(n){H.playerStatus[n]='in attesa';});
+  broadcastCritical({type:'phase',phase:'statements',order:H.turnOrder,
+    current:H.turnOrder[0],index:0,total:H.turnOrder.length,seconds:CFG.TURN_SEC}, null);
   startTurnTimer();
 }
 
 function startTurnTimer() {
   clearInterval(H.timerInt);
-  H.tl = TURN_SEC;
+  H.tl=CFG.TURN_SEC;
   renderTurnHost();
-  broadcast({type:'nextTurn', current:H.turnOrder[H.turnIndex], index:H.turnIndex, total:H.turnOrder.length, seconds:TURN_SEC});
-  H.timerInt = setInterval(function(){
+  broadcast({type:'nextTurn',current:H.turnOrder[H.turnIndex],
+    index:H.turnIndex,total:H.turnOrder.length,seconds:CFG.TURN_SEC});
+  H.timerInt=setInterval(function(){
     H.tl--;
-    document.getElementById('h-tnum').textContent = H.tl;
-    document.getElementById('h-arc').style.strokeDashoffset = 408*(1-H.tl/TURN_SEC);
-    if (H.tl <= 0) nextTurn();
-  }, 1000);
+    document.getElementById('h-tnum').textContent=H.tl;
+    document.getElementById('h-arc').style.strokeDashoffset=408*(1-H.tl/CFG.TURN_SEC);
+    if(H.tl<=0) nextTurn();
+  },1000);
   renderCtrl();
 }
 
-function renderTurnHost() {
-  var cur = H.turnOrder[H.turnIndex];
-  H.players.forEach(function(n){ if (H.connStatus[n] !== 'ha parlato') H.connStatus[n] = 'in attesa'; });
-  H.connStatus[cur] = 'sta parlando';
-  document.getElementById('h-current-turn').textContent = cur;
-  document.getElementById('h-turn-progress').textContent = (H.turnIndex+1) + ' / ' + H.turnOrder.length;
-  document.getElementById('h-tnum').textContent = TURN_SEC;
-  document.getElementById('h-arc').style.strokeDashoffset = 0;
-  document.getElementById('h-arc').style.stroke = 'var(--red2)';
-  if (navigator.vibrate) try{ navigator.vibrate(80); }catch(e){}
+function renderTurnHost(){
+  var cur=H.turnOrder[H.turnIndex];
+  H.players.forEach(function(n){if(H.playerStatus[n]!=='ha parlato')H.playerStatus[n]='in attesa';});
+  H.playerStatus[cur]='sta parlando';
+  document.getElementById('h-current-turn').textContent=cur;
+  document.getElementById('h-turn-progress').textContent=(H.turnIndex+1)+' / '+H.turnOrder.length;
+  document.getElementById('h-tnum').textContent=CFG.TURN_SEC;
+  document.getElementById('h-arc').style.strokeDashoffset=0;
+  document.getElementById('h-arc').style.stroke='var(--red2)';
+  if(navigator.vibrate)try{navigator.vibrate(80);}catch(e){}
   renderCtrl();
 }
 
-function nextTurn() {
-  if (H.phase !== 'statements') return;
+function nextTurn(){
+  if(H.phase!=='statements')return;
   clearInterval(H.timerInt);
-  var old = H.turnOrder[H.turnIndex];
-  H.connStatus[old] = 'ha parlato';
+  H.playerStatus[H.turnOrder[H.turnIndex]]='ha parlato';
   H.turnIndex++;
-  if (H.turnIndex >= H.turnOrder.length) { hostVoting(); return; }
+  if(H.turnIndex>=H.turnOrder.length){hostVoting();return;}
   startTurnTimer();
 }
 
-function hostVoting() {
+// ═══════════════════════════════════════════════════════════════════════════
+// VOTAZIONE
+// ═══════════════════════════════════════════════════════════════════════════
+function hostVoting(){
   clearInterval(H.timerInt);
-  H.phase = 'voting'; H.votes = {};
-  H.players.forEach(function(n){ H.connStatus[n] = 'non ha votato'; });
-  broadcast({type:'phase', phase:'voting', players:H.players});
-  if (H.hostPlays) showHostVote();
+  H.phase='voting'; H.votes={};
+  H.players.forEach(function(n){
+    if(H.playerStatus[n]!=='perso') H.playerStatus[n]='deve votare';
+  });
+  broadcastCritical({type:'phase',phase:'voting',players:H.players}, null);
+  if(H.hostPlays) showHostVote();
   updateVoteBar(); renderCtrl();
+
+  // Timeout di sicurezza: chiude la votazione dopo 2 minuti
+  clearTimeout(H.voteTimeout);
+  H.voteTimeout=setTimeout(function(){
+    if(H.phase==='voting') forceCloseVoting();
+  }, CFG.VOTE_TIMEOUT);
 }
 
-function showHostVote() {
-  var html = H.players.filter(function(n){ return n !== H.hostName; }).map(function(n){
-    return '<div class="vote-item" id="hvi-'+escId(n)+'" onclick="hostSelVote(\''+escId(n)+'\')">' +
-      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>' +
+function checkVotingComplete(){
+  if(H.phase!=='voting') return;
+  // Conta quanti giocatori attivi devono ancora votare
+  var activePlayers=H.players.filter(function(n){return H.playerStatus[n]!=='perso';});
+  var voted=activePlayers.filter(function(n){return H.votes[n]!==undefined;});
+  updateVoteBar();
+  if(voted.length>=activePlayers.length){
+    clearTimeout(H.voteTimeout);
+    hostResultPre();
+  }
+}
+
+function forceCloseVoting(){
+  // Chiude la votazione anche con giocatori mancanti
+  clearTimeout(H.voteTimeout);
+  if(H.phase==='voting') hostResultPre();
+}
+
+function showHostVote(){
+  var html=H.players.filter(function(n){return n!==H.hostName;}).map(function(n){
+    return '<div class="vote-item" id="hvi-'+escId(n)+'" onclick="hostSelVote(\''+escId(n)+'\')">'+
+      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>'+
       '<div class="vdot" id="hvd-'+escId(n)+'"></div></div>';
   }).join('');
-  var el = document.getElementById('host-local-card');
-  el.style.display = 'block';
-  el.innerHTML = '<div class="ai-box"><div class="lbl">Il tuo voto</div><div class="vote-list">' + html + '</div>' +
+  var el=document.getElementById('host-local-card');
+  el.style.display='block';
+  el.innerHTML='<div class="ai-box"><div class="lbl">Il tuo voto</div>'+
+    '<div class="vote-list">'+html+'</div>'+
     '<button class="btn btn-red w100" id="btn-hvote" style="margin-top:12px" onclick="hostVote()" disabled>Vota →</button></div>';
 }
 
-// Store mapping escId -> original name for voting
-var _voteNames = {};
-function hostSelVote(eid) {
-  // Find original name
-  var orig = H.players.find(function(n){ return escId(n) === eid; }) || eid;
-  if (H.hostLocal.selVote) {
-    var prev = document.getElementById('hvi-'+H.hostLocal.selVote);
-    if (prev) { prev.classList.remove('sel'); document.getElementById('hvd-'+H.hostLocal.selVote).textContent = ''; }
+function hostSelVote(eid){
+  if(H.hostLocal.selVote){
+    var pr=document.getElementById('hvi-'+H.hostLocal.selVote);
+    if(pr){pr.classList.remove('sel');document.getElementById('hvd-'+H.hostLocal.selVote).textContent='';}
   }
-  H.hostLocal.selVote = eid;
+  H.hostLocal.selVote=eid;
   document.getElementById('hvi-'+eid).classList.add('sel');
-  document.getElementById('hvd-'+eid).textContent = '✓';
-  document.getElementById('btn-hvote').disabled = false;
+  document.getElementById('hvd-'+eid).textContent='✓';
+  document.getElementById('btn-hvote').disabled=false;
 }
 
-function hostVote() {
-  if (!H.hostLocal.selVote || H.hostLocal.voted) return;
-  H.hostLocal.voted = true;
-  var orig = H.players.find(function(n){ return escId(n) === H.hostLocal.selVote; }) || H.hostLocal.selVote;
-  H.votes[H.hostName] = orig;
-  H.connStatus[H.hostName] = 'votato';
-  document.getElementById('host-local-card').style.display = 'none';
+function hostVote(){
+  if(!H.hostLocal.selVote||H.hostLocal.voted)return;
+  H.hostLocal.voted=true;
+  var orig=H.players.find(function(n){return escId(n)===H.hostLocal.selVote;})||H.hostLocal.selVote;
+  H.votes[H.hostName]=orig;
+  H.playerStatus[H.hostName]='votato';
+  document.getElementById('host-local-card').style.display='none';
   updateVoteBar(); renderCtrl();
-  var expected = H.players.length;
-  if (Object.keys(H.votes).length >= expected) hostResultPre();
+  checkVotingComplete();
 }
 
-function updateVoteBar() {
-  var done = Object.keys(H.votes).length, tot = H.players.length;
-  document.getElementById('v-ct').textContent = done+'/'+tot;
-  document.getElementById('v-fill').style.width = (tot ? done/tot*100 : 0) + '%';
+function updateVoteBar(){
+  var activePlayers=H.players.filter(function(n){return H.playerStatus[n]!=='perso';});
+  var done=activePlayers.filter(function(n){return H.votes[n]!==undefined;}).length;
+  var tot=activePlayers.length;
+  document.getElementById('v-ct').textContent=done+'/'+tot;
+  document.getElementById('v-fill').style.width=(tot?done/tot*100:0)+'%';
 }
 
-function hostResultPre() {
-  var impName = H.players[H.impIndex];
-  var tally = {};
-  H.players.forEach(function(n){ tally[n] = 0; });
-  Object.values(H.votes).forEach(function(v){ if (tally[v] !== undefined) tally[v]++; });
-  var accused = Object.keys(tally).sort(function(a,b){ return tally[b]-tally[a]; })[0];
-  var caught = accused === impName;
-  var res = {type:'result', impostorName:impName, caught:caught, saved:false, guess:null,
-    guessCorrect:false, innocentWord:H.wordPair.innocenti, impostorWord:H.wordPair.impostore,
-    votes:tally, players:H.players, impIndex:H.impIndex};
-  H.pendingResult = res;
-  if (caught) {
-    if (H.hostPlays && impName === H.hostName) {
-      document.getElementById('guess-inp').value = '';
-      document.getElementById('btn-guess').disabled = true;
+// ═══════════════════════════════════════════════════════════════════════════
+// RISULTATO
+// ═══════════════════════════════════════════════════════════════════════════
+function hostResultPre(){
+  H.phase='result';
+  clearTimeout(H.voteTimeout);
+  var impName=H.players[H.impIndex];
+  var tally={};
+  H.players.forEach(function(n){tally[n]=0;});
+  Object.values(H.votes).forEach(function(v){if(tally[v]!==undefined)tally[v]++;});
+  var accused=Object.keys(tally).sort(function(a,b){return tally[b]-tally[a];})[0];
+  var caught=accused===impName;
+  var res={type:'result',impostorName:impName,caught:caught,saved:false,guess:null,
+    guessCorrect:false,innocentWord:H.wordPair.innocenti,impostorWord:H.wordPair.impostore,
+    votes:tally,players:H.players,impIndex:H.impIndex};
+  H.pendingResult=res;
+  if(caught){
+    if(H.hostPlays&&impName===H.hostName){
+      document.getElementById('guess-inp').value='';
+      document.getElementById('btn-guess').disabled=true;
       show('s-pguess');
     } else {
-      var pid = Object.keys(H.connNames).find(function(k){ return H.connNames[k] === impName; });
-      if (pid && H.conns[pid]) H.conns[pid].send({type:'guessRequest'});
-      broadcastExcept({type:'guessWait'}, impName);
+      var pid=H.connPids[impName];
+      if(pid&&H.conns[pid]) safeSend(H.conns[pid],{type:'guessRequest'});
+      broadcastExcept({type:'guessWait'},impName);
       show('s-hguesswait');
+      // Timeout guess: se il bastardo non risponde in 30s, chiudiamo
+      setTimeout(function(){
+        if(H.pendingResult&&!H.pendingResult.guess) finishResultWithGuess('');
+      },30000);
     }
   } else {
     finishResult(res);
   }
 }
 
-function sendGuess() {
-  var val = (document.getElementById('guess-inp').value||'').trim();
-  if (H.hostPlays && H.players[H.impIndex] === H.hostName && H.pendingResult) {
-    finishResultWithGuess(val); return;
+function sendGuess(){
+  var val=(document.getElementById('guess-inp').value||'').trim();
+  if(H.hostPlays&&H.players[H.impIndex]===H.hostName&&H.pendingResult){
+    finishResultWithGuess(val);return;
   }
-  P.conn.send({type:'guess', guess:val});
+  P.conn.send({type:'guess',guess:val});
   show('s-pguesswait');
 }
 
-function finishResultWithGuess(guess) {
-  var r = H.pendingResult;
-  if (!r) return;
-  r.guess = guess;
-  r.guessCorrect = normalize(guess) === normalize(H.wordPair.innocenti);
-  r.saved = r.guessCorrect;
+function finishResultWithGuess(guess){
+  var r=H.pendingResult;
+  if(!r)return;
+  r.guess=guess;
+  r.guessCorrect=guess&&normalize(guess)===normalize(H.wordPair.innocenti);
+  r.saved=r.guessCorrect;
   finishResult(r);
 }
 
-function finishResult(res) {
+function finishResult(res){
+  stopHostHeartbeat();
   broadcast(res);
-  fillResult('hr', res);
+  fillResult('hr',res);
   show('s-hres');
 }
 
-function fillResult(p, r) {
-  var ico, title, sub;
-  if (!r.caught) { ico='😈'; title='Il Bastardo ha vinto!'; sub='Non è stato individuato.'; }
-  else if (r.saved) { ico='🛡️'; title='Il Bastardo si è salvato!'; sub='Scoperto, ma ha indovinato la parola degli innocenti.'; }
-  else { ico='🎉'; title='Bastardo smascherato!'; sub='Gli innocenti hanno vinto questo round.'; }
-  document.getElementById(p+'-ico').textContent = ico;
-  document.getElementById(p+'-title').textContent = title;
-  document.getElementById(p+'-name').textContent = r.impostorName + ' era il Bastardo';
-  document.getElementById(p+'-sub').textContent = sub;
-  var whtml = '<div class="rw"><span>Parola innocenti</span><span class="rw-v">'+safe(r.innocentWord)+'</span></div>' +
+function fillResult(p,r){
+  var ico,title,sub;
+  if(!r.caught){ico='😈';title='Il Bastardo ha vinto!';sub='Non è stato individuato.';}
+  else if(r.saved){ico='🛡️';title='Il Bastardo si è salvato!';sub='Scoperto, ma ha indovinato la parola degli innocenti.';}
+  else{ico='🎉';title='Bastardo smascherato!';sub='Gli innocenti hanno vinto questo round.';}
+  document.getElementById(p+'-ico').textContent=ico;
+  document.getElementById(p+'-title').textContent=title;
+  document.getElementById(p+'-name').textContent=r.impostorName+' era il Bastardo';
+  document.getElementById(p+'-sub').textContent=sub;
+  var whtml='<div class="rw"><span>Parola innocenti</span><span class="rw-v">'+safe(r.innocentWord)+'</span></div>'+
     '<div class="rw"><span>Parola Bastardo</span><span class="rw-v rw-imp">'+safe(r.impostorWord)+'</span></div>';
-  if (r.caught) whtml += '<div class="rw"><span>Tentativo Bastardo</span><span class="rw-v '+(r.saved?'':'rw-imp')+'">'+safe(r.guess||'—')+'</span></div>';
-  document.getElementById(p+'-words').innerHTML = whtml;
-  var mx = Math.max.apply(null, Object.values(r.votes).concat([1]));
-  document.getElementById(p+'-tally').innerHTML = r.players.map(function(n,i){
-    return '<div class="t-row"><div class="t-name">'+safe(n)+'</div>' +
-      '<div class="t-track"><div class="t-fill'+(i===r.impIndex?'':' g')+'" style="width:'+((r.votes[n]||0)/mx*100)+'%"></div></div>' +
+  if(r.caught) whtml+='<div class="rw"><span>Tentativo Bastardo</span><span class="rw-v '+(r.saved?'':'rw-imp')+'">'+safe(r.guess||'—')+'</span></div>';
+  document.getElementById(p+'-words').innerHTML=whtml;
+  var mx=Math.max.apply(null,Object.values(r.votes).concat([1]));
+  document.getElementById(p+'-tally').innerHTML=r.players.map(function(n,i){
+    return '<div class="t-row"><div class="t-name">'+safe(n)+'</div>'+
+      '<div class="t-track"><div class="t-fill'+(i===r.impIndex?'':' g')+'" style="width:'+((r.votes[n]||0)/mx*100)+'%"></div></div>'+
       '<div class="t-ct">'+(r.votes[n]||0)+'</div></div>';
   }).join('');
 }
 
-// ── PLAYER ────────────────────────────────────────────────────────────────
-function chkCode() {
-  var code = document.getElementById('room-inp').value;
-  var name = (document.getElementById('player-name-inp').value||'').trim();
-  document.getElementById('btn-join').disabled = code.length < 6 || name.length < 1;
-}
-
-function playerJoin() {
-  var code = document.getElementById('room-inp').value.toUpperCase().trim();
-  if (code.length < 6) return;
-  if (P.peer) { try{ P.peer.destroy(); }catch(e){} }
-  P.peer = new Peer(undefined, {debug:0});
-  P.peer.on('open', function(){
-    P.conn = P.peer.connect(code, {reliable:true});
-    P.conn.on('open', function(){
-      P.myName = (document.getElementById('player-name-inp').value||'').trim();
-      P.conn.send({type:'hello', name:P.myName});
-      P.conn.on('data', onHostMsg);
-    });
-    P.conn.on('error', function(){ alert('Impossibile connettersi. Controlla il codice.'); });
+function broadcastExcept(msg,name){
+  Object.keys(H.connNames).forEach(function(pid){
+    if(H.connNames[pid]!==name&&H.conns[pid]) safeSend(H.conns[pid],msg);
   });
-  P.peer.on('error', function(e){ alert('Errore: '+e.type); });
 }
 
-function onHostMsg(msg) {
-  if (msg.type === 'welcome') {
-    P.myName = msg.name; P.allPlayers = msg.players;
-    document.getElementById('p-myname').textContent = P.myName;
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER SIDE
+// ═══════════════════════════════════════════════════════════════════════════
+function chkCode(){
+  var code=document.getElementById('room-inp').value;
+  var name=(document.getElementById('player-name-inp').value||'').trim();
+  document.getElementById('btn-join').disabled=code.length<6||name.length<1;
+}
+
+function playerJoin(){
+  var code=document.getElementById('room-inp').value.toUpperCase().trim();
+  if(code.length<6)return;
+  P.lastRoomCode=code;
+  document.getElementById('join-status').textContent='Connessione in corso...';
+  document.getElementById('btn-join').disabled=true;
+  if(P.peer){try{P.peer.destroy();}catch(e){}}
+  P.peer=new Peer(undefined,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  P.peer.on('open',function(){
+    P.conn=P.peer.connect(code,{reliable:true});
+    P.conn.on('open',function(){
+      P.myName=(document.getElementById('player-name-inp').value||'').trim();
+      P.conn.send({type:'hello',name:P.myName});
+      P.conn.on('data',onHostMsg);
+      startPlayerHeartbeat();
+      document.getElementById('join-status').textContent='';
+      netBadge('Connesso','net-ok');
+    });
+    P.conn.on('close',function(){
+      netBadge('Connessione persa — riconnessione...','net-err');
+      stopPlayerHeartbeat();
+      setTimeout(playerReconnect, 2000);
+    });
+    P.conn.on('error',function(){
+      document.getElementById('join-status').textContent='Impossibile connettersi. Controlla il codice.';
+      document.getElementById('btn-join').disabled=false;
+    });
+  });
+  P.peer.on('error',function(e){
+    document.getElementById('join-status').textContent='Errore: '+e.type;
+    document.getElementById('btn-join').disabled=false;
+  });
+}
+
+function playerReconnect(){
+  if(!P.lastRoomCode||!P.myName)return;
+  netBadge('Riconnessione...','net-warn');
+  try{
+    P.conn=P.peer.connect(P.lastRoomCode,{reliable:true});
+    P.conn.on('open',function(){
+      P.conn.send({type:'hello',name:P.myName});
+      P.conn.on('data',onHostMsg);
+      P.conn.on('close',function(){
+        netBadge('Connessione persa','net-err');
+        stopPlayerHeartbeat();
+        setTimeout(playerReconnect,3000);
+      });
+      startPlayerHeartbeat();
+      netBadge('Riconnesso','net-ok');
+      // Richiede stato corrente
+      setTimeout(function(){ P.conn.send({type:'requestState'}); },500);
+    });
+    P.conn.on('error',function(){ setTimeout(playerReconnect,3000); });
+  }catch(e){ setTimeout(playerReconnect,3000); }
+}
+
+function startPlayerHeartbeat(){
+  stopPlayerHeartbeat();
+  P.heartbeatInt=setInterval(function(){
+    if(P.conn&&P.conn.open!==false) try{P.conn.send({type:'pong'});}catch(e){}
+  },CFG.HEARTBEAT_INTERVAL);
+}
+
+function stopPlayerHeartbeat(){
+  if(P.heartbeatInt){clearInterval(P.heartbeatInt);P.heartbeatInt=null;}
+}
+
+function onHostMsg(msg){
+  // Invia ACK se richiesto
+  if(msg._ack&&msg._seq&&P.conn) safeSend(P.conn,{type:'ack',_seq:msg._seq,_ackReply:true});
+
+  if(msg.type==='ping'){ if(P.conn) try{P.conn.send({type:'pong'});}catch(e){} return; }
+  if(msg.type==='ack') return;
+
+  if(msg.type==='welcome'){
+    P.myName=msg.name; P.allPlayers=msg.players;
+    document.getElementById('p-myname').textContent=P.myName;
     renderPWaitList(); show('s-pwait');
   }
-  if (msg.type === 'full') alert('Stanza piena. Riprova piu tardi.');
-  if (msg.type === 'playerJoined') { P.allPlayers = msg.players; renderPWaitList(); }
-  if (msg.type === 'roundConfirm') { show('s-pconfirm'); }
-  if (msg.type === 'confirmedList') {
-    P.allPlayers = msg.players;
-    if (P.allPlayers.indexOf(P.myName) < 0) { show('s-pexcluded'); }
-    else { renderPWaitList(); show('s-pwait'); }
+  if(msg.type==='full') alert('Stanza piena. Riprova piu tardi.');
+  if(msg.type==='playerJoined'){P.allPlayers=msg.players;renderPWaitList();}
+  if(msg.type==='roundConfirm'){show('s-pconfirm');}
+  if(msg.type==='confirmedList'){
+    P.allPlayers=msg.players;
+    if(P.allPlayers.indexOf(P.myName)<0){show('s-pexcluded');}
+    else{renderPWaitList();show('s-pwait');}
   }
-  if (msg.type === 'start') {
-    P.myWord = msg.word; P.isImp = msg.isImpostor;
-    P.allPlayers = msg.players; P.voted = false; P.selVote = null;
-    document.getElementById('pc-name').textContent = P.myName;
+  if(msg.type==='start'){
+    P.myWord=msg.word; P.isImp=msg.isImpostor;
+    P.allPlayers=msg.players; P.voted=false; P.selVote=null;
+    document.getElementById('pc-name').textContent=P.myName;
     show('s-pcover');
   }
-  if (msg.type === 'phase') {
-    if (msg.phase === 'statements') { P.allPlayers = msg.order || P.allPlayers; renderPlayerTurn(msg); show('s-pturn'); }
-    if (msg.phase === 'voting') { buildVoteList(msg.players || P.allPlayers); show('s-pvote'); }
+  if(msg.type==='gameState'){
+    P.allPlayers=msg.players||P.allPlayers;
+    if(msg.phase==='cards'&&msg.word){
+      P.myWord=msg.word; P.isImp=msg.isImpostor;
+      document.getElementById('pc-name').textContent=P.myName;
+      show('s-pcover');
+    } else if(msg.phase==='statements'){
+      renderPlayerTurn(msg); show('s-pturn');
+    } else if(msg.phase==='voting'){
+      buildVoteList(msg.votePlayers||P.allPlayers);
+      if(!P.voted) show('s-pvote'); else show('s-pvwait');
+    } else {
+      renderPWaitList(); show('s-pwait');
+    }
   }
-  if (msg.type === 'nextTurn') { renderPlayerTurn(msg); }
-  if (msg.type === 'guessRequest') { document.getElementById('guess-inp').value=''; document.getElementById('btn-guess').disabled=true; show('s-pguess'); }
-  if (msg.type === 'guessWait') { show('s-pguesswait'); }
-  if (msg.type === 'result') { fillResult('pr', msg); show('s-pres'); }
+  if(msg.type==='phase'){
+    if(msg.phase==='statements'){P.allPlayers=msg.order||P.allPlayers;renderPlayerTurn(msg);show('s-pturn');}
+    if(msg.phase==='voting'){buildVoteList(msg.players||P.allPlayers);show('s-pvote');}
+  }
+  if(msg.type==='nextTurn'){renderPlayerTurn(msg);}
+  if(msg.type==='guessRequest'){document.getElementById('guess-inp').value='';document.getElementById('btn-guess').disabled=true;show('s-pguess');}
+  if(msg.type==='guessWait'){show('s-pguesswait');}
+  if(msg.type==='result'){fillResult('pr',msg);show('s-pres');}
 }
 
-function renderPWaitList() {
-  var wl = document.getElementById('pwait-list');
-  if (wl) wl.innerHTML = (P.allPlayers||[]).map(function(n){
-    return '<div class="p-row"><div class="p-dot'+(n===P.myName?' on':'')+'"></div>' +
+function renderPWaitList(){
+  var wl=document.getElementById('pwait-list');
+  if(wl) wl.innerHTML=(P.allPlayers||[]).map(function(n){
+    return '<div class="p-row"><div class="p-dot'+(n===P.myName?' on':'')+'"></div>'+
       '<div class="p-name">'+safe(n)+(n===P.myName?' (tu)':'')+'</div></div>';
   }).join('');
 }
 
-function playerConfirm(join) {
-  P.conn.send({type:'confirm', join:join});
-  if (!join) { show('s-pexcluded'); } else { show('s-pwait'); }
+function playerConfirm(join){
+  P.conn.send({type:'confirm',join:join});
+  if(!join){stopPlayerHeartbeat();show('s-pexcluded');}
+  else show('s-pwait');
 }
 
-function playerShowCard() {
-  var imp = P.isImp;
-  document.getElementById('p-pill').textContent = imp ? '😈 Sei il Bastardo' : '😇 Sei Innocente';
-  document.getElementById('p-pill').className = 'pill ' + (imp ? 'pill-bad' : 'pill-ok');
-  document.getElementById('p-wbox').className = 'word-box' + (imp ? ' imp' : '');
-  document.getElementById('p-word').className = 'w-word' + (imp ? ' red' : '');
-  document.getElementById('p-word').textContent = P.myWord;
-  document.getElementById('p-note').textContent = imp
-    ? 'La tua parola è diversa. Bluffa e prova a capire quella degli altri.'
-    : 'Descrivi questa parola senza nominarla. Trova il Bastardo!';
+function playerShowCard(){
+  var imp=P.isImp;
+  document.getElementById('p-pill').textContent=imp?'😈 Sei il Bastardo':'😇 Sei Innocente';
+  document.getElementById('p-pill').className='pill '+(imp?'pill-bad':'pill-ok');
+  document.getElementById('p-wbox').className='word-box'+(imp?' imp':'');
+  document.getElementById('p-word').className='w-word'+(imp?' red':'');
+  document.getElementById('p-word').textContent=P.myWord;
+  document.getElementById('p-note').textContent=imp
+    ?'La tua parola è diversa. Bluffa e prova a capire quella degli altri.'
+    :'Descrivi questa parola senza nominarla. Trova il Bastardo!';
   show('s-pcard');
 }
 
-function playerCardSeen() {
+function playerCardSeen(){
   P.conn.send({type:'cardSeen'});
-  document.getElementById('p-myname').textContent = P.myName;
+  document.getElementById('p-myname').textContent=P.myName;
   show('s-pwait');
 }
 
-function renderPlayerTurn(msg) {
+function renderPlayerTurn(msg){
   clearInterval(P.timerInt);
-  var cur = msg.current;
-  var seconds = msg.seconds || TURN_SEC;
-  var isMe = cur === P.myName;
-  document.getElementById('p-turn-lbl').textContent = isMe ? 'È IL TUO TURNO' : 'Sta parlando';
-  document.getElementById('p-current-turn').textContent = isMe ? 'Parla ora' : cur;
-  document.getElementById('p-current-turn').className = 'turn-name ' + (isMe ? 'turn-you' : '');
-  document.getElementById('p-turn-note').textContent = isMe
-    ? 'Fai una dichiarazione sulla tua parola senza dirla.'
-    : 'Ascolta attentamente e cerca esitazioni o stranezze.';
-  var tl = seconds;
-  var arc = document.getElementById('p-arc');
-  var num = document.getElementById('p-tnum');
-  num.textContent = tl; arc.style.strokeDashoffset = 0; arc.style.stroke = 'var(--red2)';
-  if (isMe && navigator.vibrate) try{ navigator.vibrate([100,50,100]); }catch(e){}
-  P.timerInt = setInterval(function(){
-    tl--;
-    num.textContent = Math.max(0,tl);
-    arc.style.strokeDashoffset = 408*(1-tl/seconds);
-    if (tl <= 0) clearInterval(P.timerInt);
-  }, 1000);
+  var cur=msg.current;
+  var seconds=msg.seconds||CFG.TURN_SEC;
+  var isMe=cur===P.myName;
+  document.getElementById('p-turn-lbl').textContent=isMe?'È IL TUO TURNO':'Sta parlando';
+  document.getElementById('p-current-turn').textContent=isMe?'Parla ora':cur;
+  document.getElementById('p-current-turn').className='turn-name '+(isMe?'turn-you':'');
+  document.getElementById('p-turn-note').textContent=isMe
+    ?'Fai una dichiarazione sulla tua parola senza dirla.'
+    :'Ascolta attentamente e cerca esitazioni o stranezze.';
+  var tl=seconds,arc=document.getElementById('p-arc'),num=document.getElementById('p-tnum');
+  num.textContent=tl; arc.style.strokeDashoffset=0; arc.style.stroke='var(--red2)';
+  if(isMe&&navigator.vibrate)try{navigator.vibrate([100,50,100]);}catch(e){}
+  P.timerInt=setInterval(function(){
+    tl--;num.textContent=Math.max(0,tl);
+    arc.style.strokeDashoffset=408*(1-tl/seconds);
+    if(tl<=0)clearInterval(P.timerInt);
+  },1000);
 }
 
-function buildVoteList(players) {
-  P.selVote = null;
-  document.getElementById('btn-pvote').disabled = true;
-  document.getElementById('p-vlist').innerHTML = players.filter(function(n){ return n !== P.myName; }).map(function(n){
-    return '<div class="vote-item" id="pvi-'+escId(n)+'" onclick="pSel(\''+escId(n)+'\')">' +
-      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>' +
+function buildVoteList(players){
+  P.selVote=null;
+  document.getElementById('btn-pvote').disabled=true;
+  document.getElementById('p-vlist').innerHTML=players.filter(function(n){return n!==P.myName;}).map(function(n){
+    return '<div class="vote-item" id="pvi-'+escId(n)+'" onclick="pSel(\''+escId(n)+'\')">'+
+      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>'+
       '<div class="vdot" id="pvd-'+escId(n)+'"></div></div>';
   }).join('');
 }
 
-function pSel(eid) {
-  if (P.selVote) {
-    var prev = document.getElementById('pvi-'+P.selVote);
-    if (prev) { prev.classList.remove('sel'); document.getElementById('pvd-'+P.selVote).textContent=''; }
+function pSel(eid){
+  if(P.selVote){
+    var pr=document.getElementById('pvi-'+P.selVote);
+    if(pr){pr.classList.remove('sel');document.getElementById('pvd-'+P.selVote).textContent='';}
   }
-  P.selVote = eid;
+  P.selVote=eid;
   document.getElementById('pvi-'+eid).classList.add('sel');
-  document.getElementById('pvd-'+eid).textContent = '✓';
-  document.getElementById('btn-pvote').disabled = false;
+  document.getElementById('pvd-'+eid).textContent='✓';
+  document.getElementById('btn-pvote').disabled=false;
 }
 
-function playerVote() {
-  if (!P.selVote || P.voted) return;
-  P.voted = true;
-  var orig = P.allPlayers.find(function(n){ return escId(n) === P.selVote; }) || P.selVote;
-  P.conn.send({type:'vote', target:orig});
+function playerVote(){
+  if(!P.selVote||P.voted)return;
+  P.voted=true;
+  var orig=P.allPlayers.find(function(n){return escId(n)===P.selVote;})||P.selVote;
+  P.conn.send({type:'vote',target:orig});
   show('s-pvwait');
 }
 
-show('s-home');
-</script>
-<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
 if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js')
-      .then(function(r){ console.log('SW registrato'); })
-      .catch(function(e){ console.log('SW errore:', e); });
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
   });
 }
+
+show('s-home');
 </script>
 </body>
 </html>
