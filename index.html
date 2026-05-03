@@ -1,141 +1,1617 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bastard*! - Il gioco dell'inganno</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#0b0f19">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<script src="wordbank.js"></script>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Bastardo!"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta name="theme-color" content="#C0181A"/>
+<title>Bastardo!</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin:0;
-  padding:20px;
-  background:#0b0f19;
-  color:#fff;
-  text-align:center;
+:root{
+  --red:#C0181A;--red2:#D92020;--red-bg:rgba(192,24,26,.10);
+  --gold:#8B6914;--gold-bg:rgba(139,105,20,.10);
+  --green:#1A7A40;--green-bg:rgba(26,122,64,.10);
+  --orange:#CC6600;
+  --bg:#F5F3EF;--bg3:#FFFFFF;--bg4:#E8E4DC;
+  --text:#1A1A1A;--dim:#666660;--border:rgba(0,0,0,.10);--r:14px
 }
-button {
-  padding:15px;
-  margin:10px;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-  cursor:pointer;
-}
-.card {
-  background:#12182b;
-  padding:20px;
-  border-radius:15px;
-  margin:10px;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{display:flex;justify-content:center}
+.screen{display:none;width:100%;max-width:460px;min-height:100vh;flex-direction:column;padding:0 20px 48px}
+.screen.on{display:flex;animation:fu .22s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px}
+.topbar{display:flex;align-items:center;gap:12px;padding:22px 0 8px;width:100%}
+.back{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--border);color:var(--dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-t{font-size:17px;font-weight:700}
+.logo-badge{width:92px;height:92px;border-radius:22px;background:#fff;border:2.5px solid var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(192,24,26,.15)}
+.logo-big{font-family:Georgia,serif;font-size:44px;font-weight:700;color:var(--red2);letter-spacing:-1px}
+.logo-title{font-family:Georgia,serif;font-size:50px;font-weight:700;color:var(--red2);letter-spacing:-1px;line-height:1}
+.logo-sub{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.h1{font-family:Georgia,serif;font-size:clamp(24px,6vw,32px);font-weight:700;line-height:1.2;text-align:center}
+.h1 b{color:var(--red2)}
+.lbl{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);width:100%;margin-bottom:8px}
+.hint{font-size:15px;color:var(--dim);line-height:1.6;text-align:center}
+.btn{width:100%;max-width:340px;padding:17px;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.10)}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.3;pointer-events:none}
+.btn-red{background:var(--red);color:#fff}
+.btn-gold{background:#8B6914;color:#fff}
+.btn-out{background:#fff;color:var(--dim);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.btn-sm{padding:13px 20px;font-size:15px;max-width:100%}
+.btns{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin-top:auto;padding-top:16px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:360px}
+.role-card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:22px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.role-card:active{transform:scale(.96)}
+.role-card.host{border-color:var(--red)}
+.role-card.player{border-color:var(--gold)}
+.role-card-ico{font-size:34px}
+.role-card-lbl{font-size:14px;font-weight:700}
+.role-card.host .role-card-lbl{color:var(--red2)}
+.role-card.player .role-card-lbl{color:var(--gold)}
+.mode-grid{display:grid;grid-template-columns:1fr;gap:10px;width:100%;max-width:360px}
+.mode-card{background:#fff;border:2px solid var(--border);border-radius:16px;padding:16px;text-align:left;cursor:pointer}
+.mode-card.pick{border-color:var(--gold);background:var(--gold-bg)}
+.mode-title{font-weight:800;color:var(--gold);font-size:15px}
+.mode-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-top:5px}
+.inp{width:100%;padding:15px 16px;background:#fff;border:2px solid var(--border);border-radius:var(--r);color:var(--text);font-size:16px;font-family:inherit;outline:none;transition:border-color .2s;user-select:auto!important}
+.inp:focus{border-color:var(--red)}
+.inp::placeholder{color:#AAA}
+.inp-g{width:100%;display:flex;flex-direction:column;gap:6px}
+.num-ctrl{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:var(--r);padding:16px 18px;width:100%;border:1.5px solid var(--border)}
+.num-val{font-family:Georgia,serif;font-size:56px;font-weight:700;color:var(--red2);line-height:1;min-width:60px;text-align:center}
+.num-btn{width:50px;height:50px;border-radius:50%;background:var(--bg);border:2px solid var(--red);color:var(--red2);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%}
+.cat{background:#fff;border:2px solid var(--border);border-radius:12px;padding:13px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;transition:all .18s;color:var(--text)}
+.cat.pick{border-color:var(--red);background:var(--red-bg);color:var(--red2)}
+.cat.used{opacity:.3;pointer-events:none}
+.cat:active{transform:scale(.97)}
+.cat-ico{font-size:20px;flex-shrink:0}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-box{background:#fff;border:2px solid rgba(139,105,20,.25);border-radius:var(--r);padding:18px;width:100%}
+.ai-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:15px;gap:10px}
+.ai-row:not(:last-child){border-bottom:1px solid var(--border)}
+.ai-lbl{color:var(--dim);font-size:13px}
+.ai-val{font-weight:700;font-family:Georgia,serif;font-size:17px;color:var(--gold);text-align:right}
+.ai-val.red{color:var(--red2)}
+.room-code{font-family:'Courier New',monospace;font-size:42px;font-weight:800;letter-spacing:9px;color:var(--red2);text-align:center}
+.qr-wrap{background:#fff;border-radius:12px;padding:12px;display:inline-block;border:2px solid var(--border)}
+.p-list{width:100%;display:flex;flex-direction:column;gap:8px}
+.p-row{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:13px 14px;border:1.5px solid var(--border)}
+.p-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s}
+.p-dot.on{background:var(--green)}
+.p-dot.red{background:var(--red2)}
+.p-dot.orange{background:var(--orange)}
+.p-name{font-size:15px;flex:1;text-align:left;font-weight:600}
+.p-stat{font-size:12px;color:var(--dim);text-align:right}
+.phase-bar{background:#fff;border-radius:var(--r);padding:16px 18px;width:100%;display:flex;align-items:center;gap:14px;border:1.5px solid var(--border)}
+.ph-ico{font-size:30px}
+.ph-name{font-size:16px;font-weight:800}
+.ph-sub{font-size:13px;color:var(--dim)}
+.vbar{background:#fff;border-radius:var(--r);padding:16px 18px;width:100%;border:1.5px solid var(--border)}
+.vbar-track{margin-top:10px;height:7px;background:var(--border);border-radius:100px;overflow:hidden}
+.vbar-fill{height:100%;background:var(--red);border-radius:100px;transition:width .4s}
+.timer-wrap{position:relative;width:148px;height:148px;flex-shrink:0}
+.timer-wrap svg{transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:rgba(0,0,0,.08);stroke-width:7}
+.t-arc{fill:none;stroke:var(--red2);stroke-width:7;stroke-linecap:round;stroke-dasharray:408;transition:stroke-dashoffset 1s linear,stroke .5s}
+.t-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.t-num{font-family:Georgia,serif;font-size:48px;font-weight:700;color:var(--red2);line-height:1}
+.t-lbl{font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:100px;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+.pill-ok{background:var(--green-bg);color:var(--green);border:2px solid rgba(26,122,64,.25)}
+.pill-bad{background:var(--red-bg);color:var(--red2);border:2px solid rgba(192,24,26,.25)}
+.word-box{background:#fff;border:2.5px solid rgba(139,105,20,.3);border-radius:20px;padding:32px 24px;width:100%;max-width:320px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.word-box.imp{border-color:rgba(192,24,26,.4)}
+.w-lbl{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.w-word{font-family:Georgia,serif;font-size:clamp(26px,7vw,36px);font-weight:800;color:var(--gold);line-height:1.2}
+.w-word.red{color:var(--red2)}
+.w-note{font-size:13px;color:var(--dim);margin-top:12px;line-height:1.6}
+.vote-list{width:100%;display:flex;flex-direction:column;gap:8px}
+.vote-item{background:#fff;border:2px solid var(--border);border-radius:12px;padding:15px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:15px;font-weight:700;transition:all .18s;color:var(--text)}
+.vote-item.sel{border-color:var(--red);background:var(--red-bg);color:var(--red2)}
+.vdot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.vote-item.sel .vdot{background:var(--red);border-color:var(--red);color:#fff}
+.r-ico{font-size:64px}
+.r-title{font-family:Georgia,serif;font-size:30px;font-weight:800;text-align:center}
+.r-card{background:#fff;border-radius:18px;padding:22px;width:100%;border:2px solid rgba(139,105,20,.2);text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.r-name{font-family:Georgia,serif;font-size:24px;font-weight:800;color:var(--red2);margin-bottom:4px}
+.r-words{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.rw{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;gap:10px}
+.rw span:first-child{color:var(--dim)}
+.rw-v{font-weight:800}
+.rw-imp{color:var(--red2)}
+.tally{width:100%;display:flex;flex-direction:column;gap:8px}
+.t-row{display:flex;align-items:center;gap:10px}
+.t-name{width:80px;font-size:13px;text-align:right;color:var(--dim);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-track{flex:1;background:rgba(0,0,0,.07);border-radius:100px;height:8px;overflow:hidden}
+.t-fill{height:100%;border-radius:100px;background:var(--red);transition:width .9s ease}
+.t-fill.g{background:#8B6914}
+.t-ct{font-size:13px;color:var(--dim);min-width:16px;font-weight:700}
+.turn-card{background:#fff;border:2px solid rgba(139,105,20,.25);border-radius:20px;padding:22px;width:100%;text-align:center}
+.turn-name{font-family:Georgia,serif;font-size:36px;font-weight:800;color:var(--gold);margin-top:4px}
+.turn-you{color:var(--red2)!important}
+.net-badge{position:fixed;top:12px;right:12px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;z-index:999;display:none}
+.net-badge.show{display:block}
+.net-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,64,.3)}
+.net-warn{background:rgba(204,102,0,.15);color:var(--orange);border:1px solid rgba(204,102,0,.3)}
+.net-err{background:var(--red-bg);color:var(--red2);border:1px solid rgba(192,24,26,.3)}
+.w100{width:100%}
 </style>
 </head>
-
 <body>
 
-<h1>Bastard*!</h1>
+<div id="net-badge" class="net-badge"></div>
 
-<div id="home">
-  <button onclick="createRoom()">Crea partita</button>
-  <button onclick="joinRoom()">Entra</button>
+<!-- HOME -->
+<div id="s-home" class="screen">
+  <div class="hero">
+    <div class="logo-badge"><div class="logo-big">B!</div></div>
+    <div><div class="logo-title">Bastardo!</div><div class="logo-sub">Il party game dell'inganno</div></div>
+    <div class="role-grid">
+      <div class="role-card host" onclick="initHost()"><div class="role-card-ico">👑</div><div class="role-card-lbl">Crea partita</div></div>
+      <div class="role-card player" onclick="initPlayer()"><div class="role-card-ico">🃏</div><div class="role-card-lbl">Entra come giocatore</div></div>
+    </div>
+    <p class="hint">Da 3 a 20 giocatori · Ogni smartphone è indipendente</p>
+  </div>
 </div>
 
-<div id="game" style="display:none;">
-  <h2 id="status"></h2>
-  <div id="word" style="font-size:24px;margin:20px;"></div>
-  <button onclick="nextRound()">Nuovo round</button>
+<!-- HOST MODALITÀ -->
+<div id="s-hmode" class="screen">
+  <div class="topbar"><button class="back" onclick="show('s-home')">←</button><div class="topbar-t">Modalità host</div></div>
+  <div class="hero" style="justify-content:flex-start;padding-top:24px">
+    <div class="h1">L'host <b>gioca?</b></div>
+    <div class="mode-grid">
+      <div id="mode-player" class="mode-card pick" onclick="setHostMode(true)"><div class="mode-title">🎮 Host giocatore</div><div class="mode-desc">L'host partecipa, riceve una parola e non vede la coppia generata.</div></div>
+      <div id="mode-master" class="mode-card" onclick="setHostMode(false)"><div class="mode-title">🎙 Host regista</div><div class="mode-desc">L'host non partecipa: crea, controlla e può vedere le parole.</div></div>
+    </div>
+    <div class="inp-g" id="host-name-wrap"><div class="lbl">Nome host giocatore</div><input class="inp" type="text" id="host-name" placeholder="Es: Marco" maxlength="14"/></div>
+    <div class="btns"><button class="btn btn-red" onclick="goHostSetup()">Continua →</button></div>
+  </div>
 </div>
 
+<!-- HOST SETUP -->
+<div id="s-hsetup" class="screen">
+  <div class="topbar"><button class="back" onclick="show('s-hmode')">←</button><div class="topbar-t">Configura partita</div></div>
+  <div class="w100">
+    <div class="lbl">Numero totale giocatori</div>
+    <div class="num-ctrl">
+      <button class="num-btn" id="btn-m" onclick="chgP(-1)">−</button>
+      <div class="num-val" id="p-disp">4</div>
+      <button class="num-btn" id="btn-p" onclick="chgP(1)">+</button>
+    </div>
+    <p class="hint" id="np-hint" style="margin-top:8px"></p>
+  </div>
+  <div class="btns"><button class="btn btn-red" onclick="goCategory()">Scegli categoria →</button></div>
+</div>
+
+<!-- HOST CATEGORIA -->
+<div id="s-hcat" class="screen">
+  <div class="topbar"><button class="back" id="btn-cat-back" onclick="show('s-hsetup')">←</button><div class="topbar-t">Scegli categoria</div></div>
+  <div class="cat-grid" id="cat-grid"></div>
+  <div id="ai-area" class="w100"></div>
+  <div class="btns"><button class="btn btn-red" id="btn-gen" onclick="genWords()" disabled>Estrai coppia ✦</button></div>
+</div>
+
+<!-- HOST LOBBY -->
+<div id="s-hlobby" class="screen">
+  <div class="topbar"><button class="back" onclick="goCategory()">←</button><div class="topbar-t">Lobby</div></div>
+  <div class="w100" style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:4px">
+    <div class="lbl" style="text-align:center">Codice stanza</div>
+    <div class="room-code" id="room-code">——————</div>
+    <div class="qr-wrap" id="qr-area"></div>
+    <p class="hint">Ogni giocatore apre l'app e inserisce questo codice</p>
+  </div>
+  <div class="w100">
+    <div class="lbl">Connessioni (<span id="conn-n">0</span> / <span id="conn-tot">4</span>)</div>
+    <div class="p-list" id="lobby-list"></div>
+  </div>
+  <div class="btns">
+    <button class="btn btn-red" id="btn-startg" onclick="hostStart()" disabled>Inizia Bastardo! →</button>
+    <button class="btn btn-out btn-sm" onclick="hostStart()">Avvia comunque</button>
+  </div>
+</div>
+
+<!-- HOST CONFERME NUOVO ROUND -->
+<div id="s-hnewlobby" class="screen">
+  <div class="topbar" style="justify-content:center"><div class="topbar-t" style="font-size:18px">Nuovo round — conferme</div></div>
+  <p class="hint" style="margin-top:8px">I giocatori stanno scegliendo se partecipare.</p>
+  <div class="w100" style="margin-top:16px">
+    <div class="lbl">Risposte (<span id="nl-n">0</span> / <span id="nl-tot">0</span>)</div>
+    <div class="p-list" id="nl-list"></div>
+  </div>
+  <div class="btns">
+    <button class="btn btn-red" id="btn-nl-go" onclick="hostGoCategory()">Scegli categoria →</button>
+    <button class="btn btn-out btn-sm" onclick="hostGoCategory()">Avvia con chi c'è</button>
+  </div>
+</div>
+
+<!-- HOST CONTROLLO -->
+<div id="s-hctrl" class="screen">
+  <div style="padding-top:24px;width:100%;display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div class="h1">Bastardo! <b>in corso</b></div>
+    <div class="phase-bar"><div class="ph-ico" id="ph-ico">🃏</div><div><div class="ph-name" id="ph-name">Distribuzione schede</div><div class="ph-sub" id="ph-sub">I giocatori vedono le loro parole</div></div></div>
+    <div id="host-local-card" class="w100" style="display:none"></div>
+    <div class="timer-wrap" id="h-timer" style="display:none">
+      <svg width="148" height="148" viewBox="0 0 148 148"><circle class="t-bg" cx="74" cy="74" r="65"/><circle class="t-arc" id="h-arc" cx="74" cy="74" r="65"/></svg>
+      <div class="t-inner"><div class="t-num" id="h-tnum">15</div><div class="t-lbl">sec</div></div>
+    </div>
+    <div class="turn-card" id="h-turn-card" style="display:none">
+      <div class="w-lbl">Sta dichiarando</div>
+      <div class="turn-name" id="h-current-turn">—</div>
+      <div class="w-note" id="h-turn-progress">—</div>
+    </div>
+    <div class="vbar" id="v-bar" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:14px;font-weight:700">Voti ricevuti</div><div style="font-size:14px;color:var(--gold)" id="v-ct">0/4</div></div>
+      <div class="vbar-track"><div class="vbar-fill" id="v-fill" style="width:0%"></div></div>
+    </div>
+    <div class="w100"><div class="lbl">Stato giocatori</div><div class="p-list" id="ctrl-list"></div></div>
+  </div>
+  <div class="btns">
+    <button class="btn btn-red" id="btn-adv" onclick="hostAdvance()" style="display:none">Avvia giro dichiarazioni →</button>
+    <button class="btn btn-out btn-sm" id="btn-nextturn" onclick="nextTurn()" style="display:none">Forza prossimo turno</button>
+    <button class="btn btn-out btn-sm" id="btn-forcevote" onclick="forceCloseVoting()" style="display:none">Chiudi votazione</button>
+  </div>
+</div>
+
+<!-- HOST ATTESA GUESS -->
+<div id="s-hguesswait" class="screen">
+  <div class="hero">
+    <div style="font-size:52px">😈</div>
+    <div class="h1">Il Bastardo è stato <b>scoperto</b></div>
+    <p class="hint">Ora può provare a salvarsi indovinando la parola degli innocenti.</p>
+    <div class="spinner"></div>
+    <button class="btn btn-out btn-sm" onclick="finishResultWithGuess('')" style="margin-top:8px">Salta tentativo</button>
+  </div>
+</div>
+
+<!-- HOST RISULTATO -->
+<div id="s-hres" class="screen">
+  <div class="hero">
+    <div class="r-ico" id="hr-ico">🎭</div>
+    <div class="r-title" id="hr-title">—</div>
+    <div class="r-card"><div class="r-name" id="hr-name">—</div><div class="hint" id="hr-sub" style="margin-top:4px"></div><div class="r-words" id="hr-words"></div></div>
+    <div class="w100"><div class="lbl">Votazioni</div><div class="tally" id="hr-tally"></div></div>
+    <div class="btns" style="margin-top:0">
+      <button class="btn btn-red" onclick="hostNewRound()">Nuovo round ↻</button>
+      <button class="btn btn-out btn-sm" onclick="location.reload()">Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER JOIN -->
+<div id="s-pjoin" class="screen">
+  <div class="hero">
+    <div class="logo-badge"><div class="logo-big">B!</div></div>
+    <div class="h1">Entra in <b>Bastardo!</b></div>
+    <div class="inp-g w100" style="max-width:300px;gap:14px">
+      <div><div class="lbl" style="text-align:center">Il tuo nome</div><input class="inp" type="text" id="player-name-inp" placeholder="Es: Marco" maxlength="14" style="text-align:center;font-size:20px;font-weight:700" oninput="chkCode()"/></div>
+      <div><div class="lbl" style="text-align:center">Codice stanza</div><input class="inp" type="text" id="room-inp" placeholder="XXXXXX" maxlength="7" style="text-align:center;font-size:30px;font-family:monospace;letter-spacing:8px;font-weight:800;text-transform:uppercase" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');chkCode()"/></div>
+    </div>
+    <div class="btns" style="margin-top:0">
+      <button class="btn btn-gold" id="btn-join" onclick="playerJoin()" disabled>Connettiti →</button>
+      <button class="btn btn-out btn-sm" onclick="show('s-home')">← Home</button>
+    </div>
+    <p class="hint" id="join-status" style="min-height:20px"></p>
+  </div>
+</div>
+
+<!-- PLAYER ATTESA -->
+<div id="s-pwait" class="screen">
+  <div class="hero">
+    <div style="font-size:48px">⏳</div>
+    <div class="h1">Ciao, <b id="p-myname">—</b>!</div>
+    <p class="hint">Attendi che l'host avvii la partita...</p>
+    <div class="w100" style="max-width:340px"><div class="lbl">Giocatori in stanza</div><div class="p-list" id="pwait-list"></div></div>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- PLAYER CONFERMA ROUND -->
+<div id="s-pconfirm" class="screen">
+  <div class="hero">
+    <div style="font-size:52px">🎮</div>
+    <div class="h1">Nuovo <b>round!</b></div>
+    <p class="hint">L'host ha avviato un nuovo round.<br>Vuoi partecipare?</p>
+    <div class="btns" style="margin-top:0">
+      <button class="btn btn-red" onclick="playerConfirm(true)">✓ Partecipo</button>
+      <button class="btn btn-out" onclick="playerConfirm(false)">✗ Esco dal gioco</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER USCITO -->
+<div id="s-pexcluded" class="screen">
+  <div class="hero">
+    <div style="font-size:52px">👋</div>
+    <div class="h1">Hai <b>lasciato</b> il gioco</div>
+    <p class="hint">Grazie per aver giocato!</p>
+    <button class="btn btn-out" onclick="show('s-home')" style="margin-top:0">← Home</button>
+  </div>
+</div>
+
+<!-- PLAYER COVER -->
+<div id="s-pcover" class="screen">
+  <div class="hero">
+    <div style="font-size:52px">🤫</div>
+    <div class="h1">È il tuo turno,<br><b id="pc-name">—</b></div>
+    <p class="hint">Tieni lo schermo lontano dagli altri.<br>Tocca il pulsante solo tu.</p>
+    <button class="btn btn-gold" onclick="playerShowCard()">Rivela la mia parola →</button>
+  </div>
+</div>
+
+<!-- PLAYER SCHEDA -->
+<div id="s-pcard" class="screen">
+  <div class="hero">
+    <div class="pill" id="p-pill">Innocente</div>
+    <div class="word-box" id="p-wbox">
+      <div class="w-lbl">La tua parola segreta è</div>
+      <div class="w-word" id="p-word">—</div>
+      <div class="w-note" id="p-note">—</div>
+    </div>
+    <p class="hint">Memorizza, poi conferma.</p>
+    <button class="btn btn-gold" onclick="playerCardSeen()">Ho visto · Pronto ✓</button>
+  </div>
+</div>
+
+<!-- PLAYER DICHIARAZIONI -->
+<div id="s-pturn" class="screen">
+  <div class="hero">
+    <div class="h1"><b>Giro dichiarazioni</b></div>
+    <div class="timer-wrap">
+      <svg width="148" height="148" viewBox="0 0 148 148"><circle class="t-bg" cx="74" cy="74" r="65"/><circle class="t-arc" id="p-arc" cx="74" cy="74" r="65"/></svg>
+      <div class="t-inner"><div class="t-num" id="p-tnum">15</div><div class="t-lbl">sec</div></div>
+    </div>
+    <div class="turn-card">
+      <div class="w-lbl" id="p-turn-lbl">Sta parlando</div>
+      <div class="turn-name" id="p-current-turn">—</div>
+      <div class="w-note" id="p-turn-note">Ascolta attentamente.</div>
+    </div>
+    <p class="hint">Ogni giocatore fa una dichiarazione senza dire la parola.</p>
+  </div>
+</div>
+
+<!-- PLAYER VOTAZIONE -->
+<div id="s-pvote" class="screen">
+  <div class="topbar" style="justify-content:center"><div class="topbar-t" style="font-size:18px">Chi è il <span style="color:var(--red2)">Bastardo</span>?</div></div>
+  <p class="hint" style="margin-top:8px">Scegli chi vuoi eliminare</p>
+  <div class="vote-list" id="p-vlist" style="margin-top:12px"></div>
+  <div class="btns"><button class="btn btn-red" id="btn-pvote" onclick="playerVote()" disabled>Vota →</button></div>
+</div>
+
+<!-- PLAYER ATTESA VOTO -->
+<div id="s-pvwait" class="screen">
+  <div class="hero">
+    <div style="font-size:48px">🗳</div>
+    <div class="h1">Voto <b>inviato!</b></div>
+    <p class="hint">Attendi che tutti gli altri votino...</p>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- GUESS -->
+<div id="s-pguess" class="screen">
+  <div class="hero">
+    <div style="font-size:52px">😈</div>
+    <div class="h1">Ti hanno <b>scoperto</b></div>
+    <p class="hint">Ultima possibilità: indovina la parola degli innocenti.</p>
+    <div class="inp-g w100" style="max-width:320px">
+      <div class="lbl" style="text-align:center">Parola degli innocenti</div>
+      <input class="inp" id="guess-inp" type="text" placeholder="Scrivi qui..." style="text-align:center;font-size:20px;font-weight:700" oninput="document.getElementById('btn-guess').disabled=!this.value.trim()"/>
+    </div>
+    <button class="btn btn-red" id="btn-guess" onclick="sendGuess()" disabled>Prova a salvarti →</button>
+  </div>
+</div>
+
+<!-- ATTESA GUESS -->
+<div id="s-pguesswait" class="screen">
+  <div class="hero">
+    <div style="font-size:48px">⏳</div>
+    <div class="h1">Tentativo <b>inviato</b></div>
+    <p class="hint">Attendi il risultato finale...</p>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- PLAYER RISULTATO -->
+<div id="s-pres" class="screen">
+  <div class="hero">
+    <div class="r-ico" id="pr-ico">🎭</div>
+    <div class="r-title" id="pr-title">—</div>
+    <div class="r-card"><div class="r-name" id="pr-name">—</div><div class="hint" id="pr-sub" style="margin-top:4px"></div><div class="r-words" id="pr-words"></div></div>
+    <div class="w100"><div class="lbl">Votazioni</div><div class="tally" id="pr-tally"></div></div>
+    <p class="hint">Attendi il prossimo round dall'host...</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="wordbank.js"></script>
 <script>
 
-let peer, conn;
-let isHost = false;
-let players = [];
-let myName = "Player" + Math.floor(Math.random()*1000);
-let usedPairs = [];
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURAZIONE
+// ═══════════════════════════════════════════════════════════════════════════
+var CFG = {
+  TURN_SEC: 15,          // secondi per dichiarazione
+  MAX_IMP_WINDOW: 2,     // max volte impostore negli ultimi N round
+  IMP_WINDOW: 5,
+  HEARTBEAT_INTERVAL: 4000,   // ping ogni 4s
+  HEARTBEAT_TIMEOUT: 13000,   // se non risponde in 13s → perso
+  ACK_TIMEOUT: 3000,          // attesa ACK per messaggi critici
+  ACK_RETRIES: 3,             // tentativi rinvio
+  VOTE_TIMEOUT: 120000,       // 2 min max per la votazione
+  REJOIN_WINDOW: 300000       // 5 min per rientrare
+};
 
-// PRENDI COPPIA DAL DATABASE
-function getPair() {
-  let available = WORD_BANK.filter(p => !usedPairs.includes(p));
+var CAT_ICONS = {
+  'Sport':'⚽','Animali':'🐾','Cibo e Cucina':'🍕','Cibo':'🍕',
+  'Cinema e Serie TV':'🎬','Cinema':'🎬','Anni 80/90':'📼',
+  'Oggetti di Casa':'🏠','Oggetti':'🏠','Tecnologia':'💻',
+  'Luoghi Famosi':'🗺️','Musica':'🎵','Professioni':'👔',
+  'Natura':'🌿','Storia e Personaggi':'📚','Feste e Tradizioni':'🎉',
+  'Scienza e Scoperte':'🔬','Moda e Stile':'👗','Videogiochi':'🎮',
+  'Arte e Pittura':'🎨','Trasporti e Veicoli':'🚗','Mitologia e Leggende':'⚡',
+  'Cucina del Mondo':'🌍','Supereroi e Fumetti':'🦸'
+};
 
-  if (available.length === 0) {
-    usedPairs = [];
-    available = WORD_BANK;
+var CATS = (typeof WORD_BANK !== 'undefined' && Array.isArray(WORD_BANK))
+  ? Array.from(new Set(WORD_BANK.map(function(p){ return p.cat; }).filter(Boolean)))
+      .map(function(cat){ return { n: cat, e: CAT_ICONS[cat] || '🎲' }; })
+  : [];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST STATE
+// ═══════════════════════════════════════════════════════════════════════════
+var H = {
+  np:4, hostPlays:true, hostName:'Host', apiKey:'',
+  usedCats:[], selCat:null, customCat:'', wordPair:null,
+  peer:null, conns:{}, connNames:{}, connPids:{},
+  roomCode:'', players:[], votes:{}, phase:'',
+  impIndex:-1, impHistory:[], lastImp:null,
+  turnOrder:[], turnIndex:0, timerInt:null, tl:CFG.TURN_SEC,
+  hostLocal:{word:'',isImp:false,seen:false,voted:false,selVote:null},
+  pendingResult:null, isNewRound:false, confirmed:{},
+  // Rete robusta
+  heartbeatInt:null,
+  lastSeen:{},       // pid → timestamp ultimo messaggio ricevuto
+  playerStatus:{},   // name → stato corrente
+  voteTimeout:null,
+  msgSeq:0,          // sequenza messaggi per evitare duplicati
+  ackPending:{}      // seq → {pids, timer, msg, retries}
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER STATE
+// ═══════════════════════════════════════════════════════════════════════════
+var P = {
+  peer:null, conn:null, myName:'', myWord:'', isImp:false,
+  allPlayers:[], selVote:null, voted:false, timerInt:null,
+  heartbeatInt:null, reconnecting:false, lastRoomCode:''
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+function safe(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function escId(s) { return (s||'').replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+function normalize(s) {
+  return (s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+
+function ts() { return Date.now(); }
+
+// Indicatore connessione
+function netBadge(txt, cls) {
+  var b = document.getElementById('net-badge');
+  b.textContent = txt;
+  b.className = 'net-badge show ' + cls;
+  clearTimeout(b._t);
+  if (cls === 'net-ok') b._t = setTimeout(function(){ b.classList.remove('show'); }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BROADCAST CON ACK
+// ═══════════════════════════════════════════════════════════════════════════
+function broadcast(msg) {
+  Object.values(H.conns).forEach(function(c){ safeSend(c, msg); });
+}
+
+function broadcastExcept(msg, name) {
+  Object.keys(H.connNames).forEach(function(pid){
+    if (H.connNames[pid] !== name && H.conns[pid]) safeSend(H.conns[pid], msg);
+  });
+}
+
+function safeSend(conn, msg) {
+  try {
+    if (conn && conn.open !== false) conn.send(msg);
+  } catch(e) { console.warn('Send error:', e); }
+}
+
+// Invia messaggio critico con ACK e retry
+function broadcastCritical(msg, onAllAck) {
+  H.msgSeq++;
+  var seq = H.msgSeq;
+  var m = Object.assign({}, msg, {_seq: seq, _ack: true});
+  var pids = Object.keys(H.conns).filter(function(p){ return H.conns[p] && H.conns[p].open !== false; });
+  var pending = pids.slice();
+
+  if (pending.length === 0) { if (onAllAck) onAllAck(); return; }
+
+  function tryAck(retriesLeft) {
+    pending.forEach(function(pid){ if(H.conns[pid]) safeSend(H.conns[pid], m); });
+    H.ackPending[seq] = {
+      pending: pending.slice(),
+      onAllAck: onAllAck,
+      timer: setTimeout(function(){
+        if (retriesLeft > 0) {
+          tryAck(retriesLeft - 1);
+        } else {
+          // Timeout: considera persi i giocatori che non hanno risposto
+          var lost = H.ackPending[seq] ? H.ackPending[seq].pending : [];
+          lost.forEach(function(pid){
+            var nm = H.connNames[pid];
+            if (nm) { H.playerStatus[nm] = 'perso'; }
+          });
+          delete H.ackPending[seq];
+          if (onAllAck) onAllAck();
+          renderCtrl();
+        }
+      }, CFG.ACK_TIMEOUT)
+    };
+  }
+  tryAck(CFG.ACK_RETRIES);
+}
+
+function handleAck(pid, seq) {
+  if (!H.ackPending[seq]) return;
+  var entry = H.ackPending[seq];
+  var idx = entry.pending.indexOf(pid);
+  if (idx >= 0) entry.pending.splice(idx, 1);
+  if (entry.pending.length === 0) {
+    clearTimeout(entry.timer);
+    delete H.ackPending[seq];
+    if (entry.onAllAck) entry.onAllAck();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST HEARTBEAT
+// ═══════════════════════════════════════════════════════════════════════════
+function startHostHeartbeat() {
+  stopHostHeartbeat();
+  H.heartbeatInt = setInterval(function(){
+    var now = ts();
+    Object.keys(H.conns).forEach(function(pid){
+      safeSend(H.conns[pid], {type:'ping', t: now});
+      // Controlla se il giocatore è scomparso
+      var last = H.lastSeen[pid] || now;
+      if (now - last > CFG.HEARTBEAT_TIMEOUT) {
+        var nm = H.connNames[pid];
+        if (nm && H.playerStatus[nm] !== 'perso') {
+          H.playerStatus[nm] = 'perso';
+          console.log('Giocatore perso:', nm);
+          renderCtrl();
+          // Se in fase voto, controlla se possiamo chiudere
+          if (H.phase === 'voting') checkVotingComplete();
+        }
+      }
+    });
+  }, CFG.HEARTBEAT_INTERVAL);
+}
+
+function stopHostHeartbeat() {
+  if (H.heartbeatInt) { clearInterval(H.heartbeatInt); H.heartbeatInt = null; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════════════
+function initHost() {
+  H.np = 4; H.players = []; H.hostPlays = true;
+  document.getElementById('host-name').value = localStorage.getItem('b_host_name') || '';
+  setHostMode(true);
+  show('s-hmode');
+}
+
+function initPlayer() {
+  document.getElementById('room-inp').value = '';
+  document.getElementById('player-name-inp').value = '';
+  document.getElementById('btn-join').disabled = true;
+  document.getElementById('join-status').textContent = '';
+  show('s-pjoin');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOST MODE & SETUP
+// ═══════════════════════════════════════════════════════════════════════════
+function setHostMode(v) {
+  H.hostPlays = v;
+  document.getElementById('mode-player').classList.toggle('pick', v);
+  document.getElementById('mode-master').classList.toggle('pick', !v);
+  document.getElementById('host-name-wrap').style.display = v ? 'flex' : 'none';
+}
+
+function goHostSetup() {
+  if (H.hostPlays) {
+    var n = (document.getElementById('host-name').value||'').trim();
+    if (!n) { alert('Inserisci il nome dell\'host giocatore.'); return; }
+    H.hostName = n;
+    localStorage.setItem('b_host_name', n);
+  }
+  renderNumCtrl();
+  show('s-hsetup');
+}
+
+function chgP(d) {
+  H.np = Math.min(20, Math.max(3, H.np+d));
+  renderNumCtrl();
+}
+
+function renderNumCtrl() {
+  document.getElementById('p-disp').textContent = H.np;
+  document.getElementById('btn-m').disabled = H.np <= 3;
+  document.getElementById('btn-p').disabled = H.np >= 20;
+  var ext = H.hostPlays ? Math.max(0,H.np-1) : H.np;
+  document.getElementById('np-hint').textContent = H.hostPlays
+    ? 'Include anche l\'host: servono '+ext+' connessioni esterne.'
+    : 'L\'host non gioca: servono '+ext+' connessioni esterne.';
+}
+
+function goCategory() {
+  H.players = []; H.selCat = null; H.wordPair = null;
+  document.getElementById('btn-cat-back').onclick = function(){ show('s-hsetup'); };
+  renderCatGrid();
+  document.getElementById('ai-area').innerHTML = '';
+  document.getElementById('btn-gen').disabled = true;
+  document.getElementById('btn-gen').style.display = 'flex';
+  show('s-hcat');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CATEGORIE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderCatGrid() {
+  if (!CATS.length) {
+    document.getElementById('cat-grid').innerHTML = '<div class="ai-box" style="grid-column:1/-1;border-color:rgba(192,24,26,.5)"><div class="hint" style="color:var(--red2)">Archivio parole non trovato. Verifica che wordbank.js sia presente nella stessa cartella di index.html.</div></div>';
+    return;
+  }
+  document.getElementById('cat-grid').innerHTML = CATS.map(function(c,i){
+    var cls = 'cat'+(H.selCat===i?' pick':'')+(H.usedCats.indexOf(i)>=0?' used':'');
+    return '<div class="'+cls+'" onclick="pickCat('+i+')"><span class="cat-ico">'+c.e+'</span><span>'+safe(c.n)+'</span></div>';
+  }).join('');
+}
+
+function pickCat(i) {
+  H.selCat=i;
+  renderCatGrid();
+  document.getElementById('btn-gen').disabled=false;
+  document.getElementById('ai-area').innerHTML='';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI GENERATION
+// ═══════════════════════════════════════════════════════════════════════════
+function getBankPairs(cat) {
+  if (typeof WORD_BANK === 'undefined' || !Array.isArray(WORD_BANK)) return [];
+  return WORD_BANK.filter(function(p){ return p.cat === cat && p.a && p.b; });
+}
+
+function pairId(p) {
+  return p.cat + '|' + p.a + '|' + p.b;
+}
+
+function readUsedPairs() {
+  try { return JSON.parse(localStorage.getItem('b_used_pairs') || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveUsedPair(id) {
+  var used = readUsedPairs().filter(function(x){ return x !== id; });
+  used.push(id);
+  if (used.length > 80) used = used.slice(used.length - 80);
+  localStorage.setItem('b_used_pairs', JSON.stringify(used));
+}
+
+function pickWordPairFromBank(cat) {
+  var pairs = getBankPairs(cat);
+  if (!pairs.length) return null;
+  var used = readUsedPairs();
+  var fresh = pairs.filter(function(p){ return used.indexOf(pairId(p)) < 0; });
+  var pool = fresh.length ? fresh : pairs;
+  var pair = pool[Math.floor(Math.random() * pool.length)];
+  saveUsedPair(pairId(pair));
+
+  // Inverto casualmente le parole per aumentare varietà e imprevedibilità.
+  if (Math.random() < 0.5) {
+    return { innocenti: pair.a, impostore: pair.b, cat: pair.cat };
+  }
+  return { innocenti: pair.b, impostore: pair.a, cat: pair.cat };
+}
+
+function genWords() {
+  var cat = CATS[H.selCat].n;
+  document.getElementById('ai-area').innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px">'+
+    '<div class="spinner"></div><div class="hint">Sto estraendo una coppia dall\'archivio...</div></div>';
+  document.getElementById('btn-gen').disabled = true;
+
+  setTimeout(function(){
+    var picked = pickWordPairFromBank(cat);
+    if (!picked) {
+      document.getElementById('ai-area').innerHTML =
+        '<div class="ai-box" style="border-color:rgba(192,24,26,.5)">'+
+        '<div class="hint" style="color:var(--red2)">Nessuna coppia disponibile per questa categoria. Verifica wordbank.js.</div></div>';
+      document.getElementById('btn-gen').disabled=false;
+      return;
+    }
+
+    H.wordPair = { innocenti: picked.innocenti, impostore: picked.impostore };
+    var hidden = H.hostPlays;
+    var catHtml = '<div class="ai-box">'+
+      '<div class="ai-row"><span class="ai-lbl">Categoria</span><span class="ai-val">'+safe(picked.cat)+'</span></div>';
+
+    if (!hidden) {
+      catHtml += '<div class="ai-row"><span class="ai-lbl">Parola innocenti</span><span class="ai-val">'+safe(H.wordPair.innocenti)+'</span></div>'+
+        '<div class="ai-row"><span class="ai-lbl">Parola Bastardo</span><span class="ai-val red">'+safe(H.wordPair.impostore)+'</span></div>';
+    } else {
+      catHtml += '<div class="hint" style="padding:8px 0">Coppia estratta e nascosta perché l\'host gioca.</div>';
+    }
+
+    catHtml += '</div>';
+    var btnLabel = H.isNewRound ? 'Avvia nuovo round →' : 'Vai alla lobby →';
+    var btnFn = H.isNewRound ? 'hostStartDirect()' : 'goLobby()';
+
+    document.getElementById('ai-area').innerHTML = catHtml+
+      '<button class="btn btn-red w100" style="margin-top:12px" onclick="'+btnFn+'">'+btnLabel+'</button>'+
+      '<button class="btn btn-out btn-sm w100" style="margin-top:8px" onclick="genWords()">Riestrai ↻</button>';
+    document.getElementById('btn-gen').style.display='none';
+  }, 250);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOBBY
+// ═══════════════════════════════════════════════════════════════════════════
+function goLobby() {
+  if (H.selCat!=='custom') H.usedCats.push(H.selCat);
+  var ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  H.roomCode=Array.from({length:6},function(){return ch[Math.floor(Math.random()*ch.length)];}).join('');
+  document.getElementById('room-code').textContent=H.roomCode;
+  document.getElementById('conn-tot').textContent=H.hostPlays?H.np-1:H.np;
+  document.getElementById('conn-n').textContent='0';
+  document.getElementById('btn-startg').disabled=true;
+  document.getElementById('qr-area').innerHTML='';
+  try{new QRCode(document.getElementById('qr-area'),{text:H.roomCode,width:130,height:130,colorDark:'#1A1A1A',colorLight:'#ffffff'});}catch(e){}
+  H.conns={}; H.connNames={}; H.connPids={}; H.lastSeen={}; H.playerStatus={};
+  H.ackPending={};
+  if(H.hostPlays){H.players=[H.hostName];H.playerStatus[H.hostName]='connesso';}
+  else H.players=[];
+  stopHostHeartbeat();
+  if(H.peer){try{H.peer.destroy();}catch(e){}}
+  H.peer=new Peer(H.roomCode,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  H.peer.on('error',function(e){
+    if(e.type==='unavailable-id'){
+      var r=H.roomCode+Math.floor(Math.random()*9);
+      H.roomCode=r;
+      document.getElementById('room-code').textContent=r;
+      H.peer=new Peer(r,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+      H.peer.on('connection',handleConn);
+    }
+  });
+  H.peer.on('connection',handleConn);
+  updateLobby();
+  show('s-hlobby');
+}
+
+function handleConn(conn) {
+  conn.on('open',function(){
+    H.lastSeen[conn.peer]=ts();
+    var extLimit=H.hostPlays?H.np-1:H.np;
+    var currentExt=Object.keys(H.connNames).length;
+
+    conn.on('data',function(d){
+      H.lastSeen[conn.peer]=ts();
+
+      // Risposta ACK
+      if(d._seq && d._ackReply){
+        handleAck(conn.peer, d._seq);
+        return;
+      }
+      // Ping/pong
+      if(d.type==='pong') return;
+
+      if(d.type==='hello'){
+        // Controlla se è un rejoin
+        var existingPid=H.connPids[d.name];
+        if(existingPid && H.connNames[existingPid]===d.name){
+          // Rejoin: aggiorna connessione
+          delete H.conns[existingPid];
+          H.conns[conn.peer]=conn;
+          H.connNames[conn.peer]=d.name;
+          H.connPids[d.name]=conn.peer;
+          H.playerStatus[d.name]='riconnesso';
+          // Invia stato corrente
+          sendGameState(conn, d.name);
+          updateLobby();
+          netBadge(d.name+' riconnesso', 'net-ok');
+          return;
+        }
+        // Nuova connessione
+        if(currentExt>=extLimit){conn.send({type:'full'});conn.close();return;}
+        currentExt++;
+        H.conns[conn.peer]=conn;
+        var name=uniqueName(d.name||('Giocatore '+(H.players.length+1)));
+        H.connNames[conn.peer]=name;
+        H.connPids[name]=conn.peer;
+        H.playerStatus[name]='connesso';
+        if(H.players.indexOf(name)<0) H.players.push(name);
+        conn.send({type:'welcome',name:name,players:H.players});
+        broadcast({type:'playerJoined',players:H.players});
+        updateLobby();
+      } else {
+        onPlayerMsg(conn.peer, d);
+      }
+    });
+
+    conn.on('close',function(){
+      var nm=H.connNames[conn.peer];
+      if(nm){
+        H.playerStatus[nm]='disconnesso';
+        // Non rimuoviamo subito per permettere il rejoin
+        setTimeout(function(){
+          if(H.playerStatus[nm]==='disconnesso'){
+            H.playerStatus[nm]='perso';
+            renderCtrl();
+            if(H.phase==='voting') checkVotingComplete();
+          }
+        }, CFG.REJOIN_WINDOW);
+      }
+      updateLobby();
+      renderCtrl();
+    });
+  });
+}
+
+function sendGameState(conn, name) {
+  var state={type:'gameState',players:H.players,phase:H.phase,roomCode:H.roomCode};
+  if(H.phase==='cards'){
+    var idx=H.players.indexOf(name);
+    if(idx>=0){
+      state.word=idx===H.impIndex?H.wordPair.impostore:H.wordPair.innocenti;
+      state.isImpostor=idx===H.impIndex;
+      state.myName=name;
+    }
+  }
+  if(H.phase==='statements'){
+    state.order=H.turnOrder;
+    state.current=H.turnOrder[H.turnIndex];
+    state.index=H.turnIndex;
+    state.total=H.turnOrder.length;
+    state.seconds=H.tl;
+  }
+  if(H.phase==='voting'){
+    state.votePlayers=H.players;
+  }
+  safeSend(conn, state);
+}
+
+function uniqueName(base) {
+  base=(base||'Giocatore').trim().slice(0,14);
+  var n=base,i=2;
+  while(H.players.indexOf(n)>=0){n=(base+' '+i).slice(0,14);i++;}
+  return n;
+}
+
+function updateLobby() {
+  var extConnected=Object.keys(H.connNames).filter(function(p){
+    return H.playerStatus[H.connNames[p]]==='connesso'||H.playerStatus[H.connNames[p]]==='riconnesso';
+  }).length;
+  var extNeed=H.hostPlays?H.np-1:H.np;
+  var el_n=document.getElementById('conn-n');
+  var el_tot=document.getElementById('conn-tot');
+  var el_btn=document.getElementById('btn-startg');
+  if(el_n) el_n.textContent=extConnected;
+  if(el_tot) el_tot.textContent=extNeed;
+  if(el_btn) el_btn.disabled=extConnected<extNeed;
+  var rows=H.players.map(function(nm){
+    var st=H.playerStatus[nm]||'connesso';
+    var dot=st==='connesso'||st==='riconnesso'?'on':st==='perso'||st==='disconnesso'?'red':'orange';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(nm)+(H.hostPlays&&nm===H.hostName?' (host)':'')+'</div>'+
+      '<div class="p-stat">'+safe(st)+'</div></div>';
+  });
+  for(var i=extConnected;i<extNeed;i++){
+    rows.push('<div class="p-row"><div class="p-dot"></div>'+
+      '<div class="p-name" style="color:var(--dim)">Posto libero...</div>'+
+      '<div class="p-stat">in attesa</div></div>');
+  }
+  var ll=document.getElementById('lobby-list');
+  if(ll) ll.innerHTML=rows.join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NUOVO ROUND
+// ═══════════════════════════════════════════════════════════════════════════
+function hostNewRound() {
+  stopHostHeartbeat();
+  clearTimeout(H.voteTimeout);
+  H.phase=''; H.votes={}; H.wordPair=null; H.selCat=null;
+  H.isNewRound=true; H.confirmed={};
+  H.hostLocal={word:'',isImp:false,seen:false,voted:false,selVote:null};
+  H.playerStatus={};
+  if(H.hostPlays){H.confirmed[H.hostName]=true;H.playerStatus[H.hostName]='host';}
+  Object.values(H.connNames).forEach(function(n){H.playerStatus[n]='in attesa';});
+  broadcast({type:'roundConfirm'});
+  renderNewLobby();
+  show('s-hnewlobby');
+}
+
+function renderNewLobby() {
+  var names=Object.values(H.connNames).filter(function(n){
+    return H.playerStatus[n]!=='perso';
+  });
+  var tot=names.length;
+  var conf=names.filter(function(n){return H.confirmed[n]===true;}).length;
+  document.getElementById('nl-n').textContent=conf;
+  document.getElementById('nl-tot').textContent=tot;
+  document.getElementById('nl-list').innerHTML=names.map(function(n){
+    var s=H.confirmed[n];
+    var dot=s===true?'on':s===false?'red':'';
+    var stat=s===true?'partecipa ✓':s===false?'uscito':'in attesa...';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(n)+'</div><div class="p-stat">'+stat+'</div></div>';
+  }).join('');
+  var allAnswered=names.every(function(n){return H.confirmed[n]!==undefined;});
+  document.getElementById('btn-nl-go').textContent=allAnswered?'Avvia round →':'Scegli categoria →';
+}
+
+function hostGoCategory() {
+  var activeNames=Object.keys(H.confirmed).filter(function(n){return H.confirmed[n]===true;});
+  if(H.hostPlays){
+    H.players=[H.hostName];
+    activeNames.forEach(function(n){if(n!==H.hostName&&H.players.indexOf(n)<0)H.players.push(n);});
+  } else {
+    H.players=activeNames;
+  }
+  H.np=H.players.length;
+  if(H.players.length<3){alert('Non ci sono abbastanza giocatori (minimo 3).');return;}
+  broadcast({type:'confirmedList',players:H.players});
+  document.getElementById('btn-cat-back').onclick=function(){hostNewRound();};
+  renderCatGrid();
+  document.getElementById('ai-area').innerHTML='';
+  document.getElementById('btn-gen').disabled=true;
+  document.getElementById('btn-gen').style.display='flex';
+  show('s-hcat');
+}
+
+function hostStartDirect() {
+  if(H.selCat!==null) H.usedCats.push(H.selCat);
+  H.isNewRound=false;
+  document.getElementById('host-local-card').style.display='none';
+  hostStart();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GIOCO
+// ═══════════════════════════════════════════════════════════════════════════
+function chooseImpIndex() {
+  var candidates=H.players.map(function(n,i){return{n:n,i:i};});
+  var recent=H.impHistory.slice(-CFG.IMP_WINDOW);
+  var counts={};recent.forEach(function(n){counts[n]=(counts[n]||0)+1;});
+  candidates=candidates.filter(function(x){return(counts[x.n]||0)<CFG.MAX_IMP_WINDOW;});
+  if(candidates.length>1&&H.lastImp) candidates=candidates.filter(function(x){return x.n!==H.lastImp;});
+  if(!candidates.length) candidates=H.players.map(function(n,i){return{n:n,i:i};});
+  var pick=candidates[Math.floor(Math.random()*candidates.length)];
+  H.lastImp=pick.n; H.impHistory.push(pick.n);
+  if(H.impHistory.length>20) H.impHistory.shift();
+  return pick.i;
+}
+
+function hostStart() {
+  if(H.players.length<3){alert('Servono almeno 3 giocatori totali.');return;}
+  H.impIndex=chooseImpIndex();
+  H.phase='cards'; H.votes={}; H.pendingResult=null;
+  H.hostLocal={word:'',isImp:false,seen:false,voted:false,selVote:null};
+  H.players.forEach(function(n){H.playerStatus[n]='scheda non vista';});
+
+  // Invia schede con ACK
+  H.players.forEach(function(name,idx){
+    var isImp=idx===H.impIndex;
+    var word=isImp?H.wordPair.impostore:H.wordPair.innocenti;
+    if(H.hostPlays&&name===H.hostName){
+      H.hostLocal.word=word; H.hostLocal.isImp=isImp;
+    } else {
+      var pid=H.connPids[name];
+      if(pid&&H.conns[pid]){
+        var msg={type:'start',word:word,isImpostor:isImp,myName:name,players:H.players,_seq:++H.msgSeq,_ack:true};
+        H.ackPending[H.msgSeq]={pending:[pid],onAllAck:null,timer:null};
+        // Semplice invio con retry
+        (function retryCard(m,p,tries){
+          safeSend(H.conns[p],m);
+          if(tries>0){
+            H.ackPending[m._seq]&&(H.ackPending[m._seq].timer=setTimeout(function(){
+              if(H.ackPending[m._seq]&&H.ackPending[m._seq].pending.indexOf(p)>=0) retryCard(m,p,tries-1);
+            },CFG.ACK_TIMEOUT));
+          }
+        })(msg,pid,CFG.ACK_RETRIES);
+      }
+    }
+  });
+
+  startHostHeartbeat();
+  renderCtrl();
+  showHostLocalCard();
+  document.getElementById('btn-adv').style.display=H.hostPlays?'none':'flex';
+  show('s-hctrl');
+}
+
+function showHostLocalCard() {
+  var el=document.getElementById('host-local-card');
+  if(!H.hostPlays){el.style.display='none';return;}
+  el.style.display='block';
+  if(!H.hostLocal.seen){
+    el.innerHTML='<div class="ai-box"><div class="hint">Anche tu giochi. Tocca solo quando sei pronto.</div>'+
+      '<button class="btn btn-gold w100" style="margin-top:12px" onclick="hostRevealOwnCard()">Rivela la mia parola →</button></div>';
+  } else {
+    var cls=H.hostLocal.isImp?'pill-bad':'pill-ok';
+    var lbl=H.hostLocal.isImp?'😈 Sei il Bastardo':'😇 Sei Innocente';
+    el.innerHTML='<div class="ai-box"><div class="pill '+cls+'">'+lbl+'</div>'+
+      '<div class="word-box '+(H.hostLocal.isImp?'imp':'')+'" style="margin:12px auto 0">'+
+      '<div class="w-lbl">La tua parola segreta è</div>'+
+      '<div class="w-word'+(H.hostLocal.isImp?' red':'')+'">'+safe(H.hostLocal.word)+'</div>'+
+      '<div class="w-note">Memorizza e poi continua come tutti gli altri.</div></div>'+
+      '<button class="btn btn-gold w100" style="margin-top:12px" onclick="hostOwnCardSeen()">Ho visto · Pronto ✓</button></div>';
+  }
+}
+
+function hostRevealOwnCard(){H.hostLocal.seen=true;showHostLocalCard();}
+
+function hostOwnCardSeen(){
+  H.playerStatus[H.hostName]='pronto';
+  document.getElementById('host-local-card').style.display='none';
+  renderCtrl();
+  checkAllReady();
+}
+
+function checkAllReady(){
+  var allReady=H.players.every(function(n){
+    return H.playerStatus[n]==='pronto'||H.playerStatus[n]==='host'||H.playerStatus[n]==='perso';
+  });
+  if(allReady) document.getElementById('btn-adv').style.display='flex';
+}
+
+function renderCtrl() {
+  var phases={
+    cards:{ico:'🃏',name:'Distribuzione schede',sub:'I giocatori stanno leggendo le parole'},
+    statements:{ico:'🎙',name:'Giro dichiarazioni',sub:'Un giocatore alla volta parla'},
+    voting:{ico:'🗳',name:'Votazione',sub:'Raccolta voti in corso'}
+  };
+  var ph=phases[H.phase]||phases.cards;
+  document.getElementById('ph-ico').textContent=ph.ico;
+  document.getElementById('ph-name').textContent=ph.name;
+  document.getElementById('ph-sub').textContent=ph.sub;
+  document.getElementById('h-timer').style.display=H.phase==='statements'?'block':'none';
+  document.getElementById('h-turn-card').style.display=H.phase==='statements'?'block':'none';
+  document.getElementById('v-bar').style.display=H.phase==='voting'?'block':'none';
+  document.getElementById('btn-nextturn').style.display=H.phase==='statements'?'flex':'none';
+  document.getElementById('btn-forcevote').style.display=H.phase==='voting'?'flex':'none';
+  var okStats=['pronto','votato','ha parlato','sta parlando'];
+  document.getElementById('ctrl-list').innerHTML=H.players.map(function(n){
+    var st=H.playerStatus[n]||'—';
+    var ok=okStats.indexOf(st)>=0;
+    var dot=ok?'on':st==='perso'||st==='disconnesso'?'red':'';
+    return '<div class="p-row"><div class="p-dot '+dot+'"></div>'+
+      '<div class="p-name">'+safe(n)+'</div>'+
+      '<div class="p-stat">'+safe(st)+'</div></div>';
+  }).join('');
+}
+
+function onPlayerMsg(pid, msg) {
+  var name=H.connNames[pid];
+  H.lastSeen[pid]=ts();
+
+  // Invia ACK se richiesto
+  if(msg._ack && msg._seq) safeSend(H.conns[pid],{type:'ack',_seq:msg._seq,_ackReply:true});
+
+  // Heartbeat response
+  if(msg.type==='pong'){
+    if(name&&H.playerStatus[name]==='perso') netBadge(name+' riconnesso','net-ok');
+    if(name) H.playerStatus[name]=H.playerStatus[name]==='perso'?'riconnesso':H.playerStatus[name];
+    return;
   }
 
-  let pair = available[Math.floor(Math.random()*available.length)];
-  usedPairs.push(pair);
+  if(msg.type==='confirm'){
+    H.confirmed[name]=msg.join;
+    H.playerStatus[name]=msg.join?'partecipa':'uscito';
+    renderNewLobby();
+  }
 
-  return pair;
+  if(msg.type==='cardSeen'){
+    H.playerStatus[name]='pronto';
+    renderCtrl();
+    checkAllReady();
+  }
+
+  if(msg.type==='vote'){
+    if(!H.votes[name]){  // evita voti doppi
+      H.votes[name]=msg.target;
+      H.playerStatus[name]='votato';
+      updateVoteBar();
+      renderCtrl();
+      checkVotingComplete();
+    }
+  }
+
+  if(msg.type==='guess'){finishResultWithGuess(msg.guess);}
+
+  if(msg.type==='requestState'){
+    sendGameState(H.conns[pid],name);
+  }
 }
 
-// CREA PARTITA
-function createRoom() {
-  isHost = true;
+// ═══════════════════════════════════════════════════════════════════════════
+// DICHIARAZIONI
+// ═══════════════════════════════════════════════════════════════════════════
+function hostAdvance() {
+  H.phase='statements';
+  H.turnOrder=shuffle(H.players.slice());
+  H.turnIndex=0;
+  H.players.forEach(function(n){H.playerStatus[n]='in attesa';});
+  broadcastCritical({type:'phase',phase:'statements',order:H.turnOrder,
+    current:H.turnOrder[0],index:0,total:H.turnOrder.length,seconds:CFG.TURN_SEC}, null);
+  startTurnTimer();
+}
 
-  peer = new Peer();
-  peer.on('open', id => {
-    alert("Codice stanza: " + id);
+function startTurnTimer() {
+  clearInterval(H.timerInt);
+  H.tl=CFG.TURN_SEC;
+  renderTurnHost();
+  broadcast({type:'nextTurn',current:H.turnOrder[H.turnIndex],
+    index:H.turnIndex,total:H.turnOrder.length,seconds:CFG.TURN_SEC});
+  H.timerInt=setInterval(function(){
+    H.tl--;
+    document.getElementById('h-tnum').textContent=H.tl;
+    document.getElementById('h-arc').style.strokeDashoffset=408*(1-H.tl/CFG.TURN_SEC);
+    if(H.tl<=0) nextTurn();
+  },1000);
+  renderCtrl();
+}
+
+function renderTurnHost(){
+  var cur=H.turnOrder[H.turnIndex];
+  H.players.forEach(function(n){if(H.playerStatus[n]!=='ha parlato')H.playerStatus[n]='in attesa';});
+  H.playerStatus[cur]='sta parlando';
+  document.getElementById('h-current-turn').textContent=cur;
+  document.getElementById('h-turn-progress').textContent=(H.turnIndex+1)+' / '+H.turnOrder.length;
+  document.getElementById('h-tnum').textContent=CFG.TURN_SEC;
+  document.getElementById('h-arc').style.strokeDashoffset=0;
+  document.getElementById('h-arc').style.stroke='var(--red2)';
+  if(navigator.vibrate)try{navigator.vibrate(80);}catch(e){}
+  renderCtrl();
+}
+
+function nextTurn(){
+  if(H.phase!=='statements')return;
+  clearInterval(H.timerInt);
+  H.playerStatus[H.turnOrder[H.turnIndex]]='ha parlato';
+  H.turnIndex++;
+  if(H.turnIndex>=H.turnOrder.length){hostVoting();return;}
+  startTurnTimer();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VOTAZIONE
+// ═══════════════════════════════════════════════════════════════════════════
+function hostVoting(){
+  clearInterval(H.timerInt);
+  H.phase='voting'; H.votes={};
+  H.players.forEach(function(n){
+    if(H.playerStatus[n]!=='perso') H.playerStatus[n]='deve votare';
   });
+  broadcastCritical({type:'phase',phase:'voting',players:H.players}, null);
+  if(H.hostPlays) showHostVote();
+  updateVoteBar(); renderCtrl();
 
-  peer.on('connection', c => {
-    conn = c;
-    conn.on('data', handleData);
+  // Timeout di sicurezza: chiude la votazione dopo 2 minuti
+  clearTimeout(H.voteTimeout);
+  H.voteTimeout=setTimeout(function(){
+    if(H.phase==='voting') forceCloseVoting();
+  }, CFG.VOTE_TIMEOUT);
+}
+
+function checkVotingComplete(){
+  if(H.phase!=='voting') return;
+  // Conta quanti giocatori attivi devono ancora votare
+  var activePlayers=H.players.filter(function(n){return H.playerStatus[n]!=='perso';});
+  var voted=activePlayers.filter(function(n){return H.votes[n]!==undefined;});
+  updateVoteBar();
+  if(voted.length>=activePlayers.length){
+    clearTimeout(H.voteTimeout);
+    hostResultPre();
+  }
+}
+
+function forceCloseVoting(){
+  // Chiude la votazione anche con giocatori mancanti
+  clearTimeout(H.voteTimeout);
+  if(H.phase==='voting') hostResultPre();
+}
+
+function showHostVote(){
+  var html=H.players.filter(function(n){return n!==H.hostName;}).map(function(n){
+    return '<div class="vote-item" id="hvi-'+escId(n)+'" onclick="hostSelVote(\''+escId(n)+'\')">'+
+      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>'+
+      '<div class="vdot" id="hvd-'+escId(n)+'"></div></div>';
+  }).join('');
+  var el=document.getElementById('host-local-card');
+  el.style.display='block';
+  el.innerHTML='<div class="ai-box"><div class="lbl">Il tuo voto</div>'+
+    '<div class="vote-list">'+html+'</div>'+
+    '<button class="btn btn-red w100" id="btn-hvote" style="margin-top:12px" onclick="hostVote()" disabled>Vota →</button></div>';
+}
+
+function hostSelVote(eid){
+  if(H.hostLocal.selVote){
+    var pr=document.getElementById('hvi-'+H.hostLocal.selVote);
+    if(pr){pr.classList.remove('sel');document.getElementById('hvd-'+H.hostLocal.selVote).textContent='';}
+  }
+  H.hostLocal.selVote=eid;
+  document.getElementById('hvi-'+eid).classList.add('sel');
+  document.getElementById('hvd-'+eid).textContent='✓';
+  document.getElementById('btn-hvote').disabled=false;
+}
+
+function hostVote(){
+  if(!H.hostLocal.selVote||H.hostLocal.voted)return;
+  H.hostLocal.voted=true;
+  var orig=H.players.find(function(n){return escId(n)===H.hostLocal.selVote;})||H.hostLocal.selVote;
+  H.votes[H.hostName]=orig;
+  H.playerStatus[H.hostName]='votato';
+  document.getElementById('host-local-card').style.display='none';
+  updateVoteBar(); renderCtrl();
+  checkVotingComplete();
+}
+
+function updateVoteBar(){
+  var activePlayers=H.players.filter(function(n){return H.playerStatus[n]!=='perso';});
+  var done=activePlayers.filter(function(n){return H.votes[n]!==undefined;}).length;
+  var tot=activePlayers.length;
+  document.getElementById('v-ct').textContent=done+'/'+tot;
+  document.getElementById('v-fill').style.width=(tot?done/tot*100:0)+'%';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RISULTATO
+// ═══════════════════════════════════════════════════════════════════════════
+function hostResultPre(){
+  H.phase='result';
+  clearTimeout(H.voteTimeout);
+  var impName=H.players[H.impIndex];
+  var tally={};
+  H.players.forEach(function(n){tally[n]=0;});
+  Object.values(H.votes).forEach(function(v){if(tally[v]!==undefined)tally[v]++;});
+  var accused=Object.keys(tally).sort(function(a,b){return tally[b]-tally[a];})[0];
+  var caught=accused===impName;
+  var res={type:'result',impostorName:impName,caught:caught,saved:false,guess:null,
+    guessCorrect:false,innocentWord:H.wordPair.innocenti,impostorWord:H.wordPair.impostore,
+    votes:tally,players:H.players,impIndex:H.impIndex};
+  H.pendingResult=res;
+  if(caught){
+    if(H.hostPlays&&impName===H.hostName){
+      document.getElementById('guess-inp').value='';
+      document.getElementById('btn-guess').disabled=true;
+      show('s-pguess');
+    } else {
+      var pid=H.connPids[impName];
+      if(pid&&H.conns[pid]) safeSend(H.conns[pid],{type:'guessRequest'});
+      broadcastExcept({type:'guessWait'},impName);
+      show('s-hguesswait');
+      // Timeout guess: se il bastardo non risponde in 30s, chiudiamo
+      setTimeout(function(){
+        if(H.pendingResult&&!H.pendingResult.guess) finishResultWithGuess('');
+      },30000);
+    }
+  } else {
+    finishResult(res);
+  }
+}
+
+function sendGuess(){
+  var val=(document.getElementById('guess-inp').value||'').trim();
+  if(H.hostPlays&&H.players[H.impIndex]===H.hostName&&H.pendingResult){
+    finishResultWithGuess(val);return;
+  }
+  P.conn.send({type:'guess',guess:val});
+  show('s-pguesswait');
+}
+
+function finishResultWithGuess(guess){
+  var r=H.pendingResult;
+  if(!r)return;
+  r.guess=guess;
+  r.guessCorrect=guess&&normalize(guess)===normalize(H.wordPair.innocenti);
+  r.saved=r.guessCorrect;
+  finishResult(r);
+}
+
+function finishResult(res){
+  stopHostHeartbeat();
+  broadcast(res);
+  fillResult('hr',res);
+  show('s-hres');
+}
+
+function fillResult(p,r){
+  var ico,title,sub;
+  if(!r.caught){ico='😈';title='Il Bastardo ha vinto!';sub='Non è stato individuato.';}
+  else if(r.saved){ico='🛡️';title='Il Bastardo si è salvato!';sub='Scoperto, ma ha indovinato la parola degli innocenti.';}
+  else{ico='🎉';title='Bastardo smascherato!';sub='Gli innocenti hanno vinto questo round.';}
+  document.getElementById(p+'-ico').textContent=ico;
+  document.getElementById(p+'-title').textContent=title;
+  document.getElementById(p+'-name').textContent=r.impostorName+' era il Bastardo';
+  document.getElementById(p+'-sub').textContent=sub;
+  var whtml='<div class="rw"><span>Parola innocenti</span><span class="rw-v">'+safe(r.innocentWord)+'</span></div>'+
+    '<div class="rw"><span>Parola Bastardo</span><span class="rw-v rw-imp">'+safe(r.impostorWord)+'</span></div>';
+  if(r.caught) whtml+='<div class="rw"><span>Tentativo Bastardo</span><span class="rw-v '+(r.saved?'':'rw-imp')+'">'+safe(r.guess||'—')+'</span></div>';
+  document.getElementById(p+'-words').innerHTML=whtml;
+  var mx=Math.max.apply(null,Object.values(r.votes).concat([1]));
+  document.getElementById(p+'-tally').innerHTML=r.players.map(function(n,i){
+    return '<div class="t-row"><div class="t-name">'+safe(n)+'</div>'+
+      '<div class="t-track"><div class="t-fill'+(i===r.impIndex?'':' g')+'" style="width:'+((r.votes[n]||0)/mx*100)+'%"></div></div>'+
+      '<div class="t-ct">'+(r.votes[n]||0)+'</div></div>';
+  }).join('');
+}
+
+function broadcastExcept(msg,name){
+  Object.keys(H.connNames).forEach(function(pid){
+    if(H.connNames[pid]!==name&&H.conns[pid]) safeSend(H.conns[pid],msg);
   });
-
-  startGame();
 }
 
-// ENTRA
-function joinRoom() {
-  let id = prompt("Inserisci codice stanza");
-  peer = new Peer();
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER SIDE
+// ═══════════════════════════════════════════════════════════════════════════
+function chkCode(){
+  var code=document.getElementById('room-inp').value;
+  var name=(document.getElementById('player-name-inp').value||'').trim();
+  document.getElementById('btn-join').disabled=code.length<6||name.length<1;
+}
 
-  peer.on('open', () => {
-    conn = peer.connect(id);
-    conn.on('data', handleData);
+function playerJoin(){
+  var code=document.getElementById('room-inp').value.toUpperCase().trim();
+  if(code.length<6)return;
+  P.lastRoomCode=code;
+  document.getElementById('join-status').textContent='Connessione in corso...';
+  document.getElementById('btn-join').disabled=true;
+  if(P.peer){try{P.peer.destroy();}catch(e){}}
+  P.peer=new Peer(undefined,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  P.peer.on('open',function(){
+    P.conn=P.peer.connect(code,{reliable:true});
+    P.conn.on('open',function(){
+      P.myName=(document.getElementById('player-name-inp').value||'').trim();
+      P.conn.send({type:'hello',name:P.myName});
+      P.conn.on('data',onHostMsg);
+      startPlayerHeartbeat();
+      document.getElementById('join-status').textContent='';
+      netBadge('Connesso','net-ok');
+    });
+    P.conn.on('close',function(){
+      netBadge('Connessione persa — riconnessione...','net-err');
+      stopPlayerHeartbeat();
+      setTimeout(playerReconnect, 2000);
+    });
+    P.conn.on('error',function(){
+      document.getElementById('join-status').textContent='Impossibile connettersi. Controlla il codice.';
+      document.getElementById('btn-join').disabled=false;
+    });
   });
-
-  startGame();
+  P.peer.on('error',function(e){
+    document.getElementById('join-status').textContent='Errore: '+e.type;
+    document.getElementById('btn-join').disabled=false;
+  });
 }
 
-// AVVIA GIOCO
-function startGame() {
-  document.getElementById("home").style.display = "none";
-  document.getElementById("game").style.display = "block";
-
-  nextRound();
+function playerReconnect(){
+  if(!P.lastRoomCode||!P.myName)return;
+  netBadge('Riconnessione...','net-warn');
+  try{
+    P.conn=P.peer.connect(P.lastRoomCode,{reliable:true});
+    P.conn.on('open',function(){
+      P.conn.send({type:'hello',name:P.myName});
+      P.conn.on('data',onHostMsg);
+      P.conn.on('close',function(){
+        netBadge('Connessione persa','net-err');
+        stopPlayerHeartbeat();
+        setTimeout(playerReconnect,3000);
+      });
+      startPlayerHeartbeat();
+      netBadge('Riconnesso','net-ok');
+      // Richiede stato corrente
+      setTimeout(function(){ P.conn.send({type:'requestState'}); },500);
+    });
+    P.conn.on('error',function(){ setTimeout(playerReconnect,3000); });
+  }catch(e){ setTimeout(playerReconnect,3000); }
 }
 
-// NUOVO ROUND
-function nextRound() {
-
-  let pair = getPair();
-
-  let isBastard = Math.random() < 0.25;
-
-  let myWord = isBastard ? pair.b : pair.a;
-
-  document.getElementById("status").innerText =
-    isBastard ? "SEI IL BASTARDO" : "SEI UN GIOCATORE";
-
-  document.getElementById("word").innerText = myWord;
-
+function startPlayerHeartbeat(){
+  stopPlayerHeartbeat();
+  P.heartbeatInt=setInterval(function(){
+    if(P.conn&&P.conn.open!==false) try{P.conn.send({type:'pong'});}catch(e){}
+  },CFG.HEARTBEAT_INTERVAL);
 }
 
-// DATI
-function handleData(data) {
-  console.log(data);
+function stopPlayerHeartbeat(){
+  if(P.heartbeatInt){clearInterval(P.heartbeatInt);P.heartbeatInt=null;}
 }
 
+function onHostMsg(msg){
+  // Invia ACK se richiesto
+  if(msg._ack&&msg._seq&&P.conn) safeSend(P.conn,{type:'ack',_seq:msg._seq,_ackReply:true});
+
+  if(msg.type==='ping'){ if(P.conn) try{P.conn.send({type:'pong'});}catch(e){} return; }
+  if(msg.type==='ack') return;
+
+  if(msg.type==='welcome'){
+    P.myName=msg.name; P.allPlayers=msg.players;
+    document.getElementById('p-myname').textContent=P.myName;
+    renderPWaitList(); show('s-pwait');
+  }
+  if(msg.type==='full') alert('Stanza piena. Riprova piu tardi.');
+  if(msg.type==='playerJoined'){P.allPlayers=msg.players;renderPWaitList();}
+  if(msg.type==='roundConfirm'){show('s-pconfirm');}
+  if(msg.type==='confirmedList'){
+    P.allPlayers=msg.players;
+    if(P.allPlayers.indexOf(P.myName)<0){show('s-pexcluded');}
+    else{renderPWaitList();show('s-pwait');}
+  }
+  if(msg.type==='start'){
+    P.myWord=msg.word; P.isImp=msg.isImpostor;
+    P.allPlayers=msg.players; P.voted=false; P.selVote=null;
+    document.getElementById('pc-name').textContent=P.myName;
+    show('s-pcover');
+  }
+  if(msg.type==='gameState'){
+    P.allPlayers=msg.players||P.allPlayers;
+    if(msg.phase==='cards'&&msg.word){
+      P.myWord=msg.word; P.isImp=msg.isImpostor;
+      document.getElementById('pc-name').textContent=P.myName;
+      show('s-pcover');
+    } else if(msg.phase==='statements'){
+      renderPlayerTurn(msg); show('s-pturn');
+    } else if(msg.phase==='voting'){
+      buildVoteList(msg.votePlayers||P.allPlayers);
+      if(!P.voted) show('s-pvote'); else show('s-pvwait');
+    } else {
+      renderPWaitList(); show('s-pwait');
+    }
+  }
+  if(msg.type==='phase'){
+    if(msg.phase==='statements'){P.allPlayers=msg.order||P.allPlayers;renderPlayerTurn(msg);show('s-pturn');}
+    if(msg.phase==='voting'){buildVoteList(msg.players||P.allPlayers);show('s-pvote');}
+  }
+  if(msg.type==='nextTurn'){renderPlayerTurn(msg);}
+  if(msg.type==='guessRequest'){document.getElementById('guess-inp').value='';document.getElementById('btn-guess').disabled=true;show('s-pguess');}
+  if(msg.type==='guessWait'){show('s-pguesswait');}
+  if(msg.type==='result'){fillResult('pr',msg);show('s-pres');}
+}
+
+function renderPWaitList(){
+  var wl=document.getElementById('pwait-list');
+  if(wl) wl.innerHTML=(P.allPlayers||[]).map(function(n){
+    return '<div class="p-row"><div class="p-dot'+(n===P.myName?' on':'')+'"></div>'+
+      '<div class="p-name">'+safe(n)+(n===P.myName?' (tu)':'')+'</div></div>';
+  }).join('');
+}
+
+function playerConfirm(join){
+  P.conn.send({type:'confirm',join:join});
+  if(!join){stopPlayerHeartbeat();show('s-pexcluded');}
+  else show('s-pwait');
+}
+
+function playerShowCard(){
+  var imp=P.isImp;
+  document.getElementById('p-pill').textContent=imp?'😈 Sei il Bastardo':'😇 Sei Innocente';
+  document.getElementById('p-pill').className='pill '+(imp?'pill-bad':'pill-ok');
+  document.getElementById('p-wbox').className='word-box'+(imp?' imp':'');
+  document.getElementById('p-word').className='w-word'+(imp?' red':'');
+  document.getElementById('p-word').textContent=P.myWord;
+  document.getElementById('p-note').textContent=imp
+    ?'La tua parola è diversa. Bluffa e prova a capire quella degli altri.'
+    :'Descrivi questa parola senza nominarla. Trova il Bastardo!';
+  show('s-pcard');
+}
+
+function playerCardSeen(){
+  P.conn.send({type:'cardSeen'});
+  document.getElementById('p-myname').textContent=P.myName;
+  show('s-pwait');
+}
+
+function renderPlayerTurn(msg){
+  clearInterval(P.timerInt);
+  var cur=msg.current;
+  var seconds=msg.seconds||CFG.TURN_SEC;
+  var isMe=cur===P.myName;
+  document.getElementById('p-turn-lbl').textContent=isMe?'È IL TUO TURNO':'Sta parlando';
+  document.getElementById('p-current-turn').textContent=isMe?'Parla ora':cur;
+  document.getElementById('p-current-turn').className='turn-name '+(isMe?'turn-you':'');
+  document.getElementById('p-turn-note').textContent=isMe
+    ?'Fai una dichiarazione sulla tua parola senza dirla.'
+    :'Ascolta attentamente e cerca esitazioni o stranezze.';
+  var tl=seconds,arc=document.getElementById('p-arc'),num=document.getElementById('p-tnum');
+  num.textContent=tl; arc.style.strokeDashoffset=0; arc.style.stroke='var(--red2)';
+  if(isMe&&navigator.vibrate)try{navigator.vibrate([100,50,100]);}catch(e){}
+  P.timerInt=setInterval(function(){
+    tl--;num.textContent=Math.max(0,tl);
+    arc.style.strokeDashoffset=408*(1-tl/seconds);
+    if(tl<=0)clearInterval(P.timerInt);
+  },1000);
+}
+
+function buildVoteList(players){
+  P.selVote=null;
+  document.getElementById('btn-pvote').disabled=true;
+  document.getElementById('p-vlist').innerHTML=players.filter(function(n){return n!==P.myName;}).map(function(n){
+    return '<div class="vote-item" id="pvi-'+escId(n)+'" onclick="pSel(\''+escId(n)+'\')">'+
+      '<span style="font-size:18px">🃏</span><span>'+safe(n)+'</span>'+
+      '<div class="vdot" id="pvd-'+escId(n)+'"></div></div>';
+  }).join('');
+}
+
+function pSel(eid){
+  if(P.selVote){
+    var pr=document.getElementById('pvi-'+P.selVote);
+    if(pr){pr.classList.remove('sel');document.getElementById('pvd-'+P.selVote).textContent='';}
+  }
+  P.selVote=eid;
+  document.getElementById('pvi-'+eid).classList.add('sel');
+  document.getElementById('pvd-'+eid).textContent='✓';
+  document.getElementById('btn-pvote').disabled=false;
+}
+
+function playerVote(){
+  if(!P.selVote||P.voted)return;
+  P.voted=true;
+  var orig=P.allPlayers.find(function(n){return escId(n)===P.selVote;})||P.selVote;
+  P.conn.send({type:'vote',target:orig});
+  show('s-pvwait');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+show('s-home');
 </script>
-
 </body>
 </html>
